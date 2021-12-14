@@ -1,5 +1,5 @@
-./api
-./configs
-./internal
-./pkg
-./web
+./api/
+./configs/
+./internal/
+./pkg/
+./web/
