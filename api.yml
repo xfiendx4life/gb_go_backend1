@@ -1,0 +1,137 @@
+openapi: 3.0.0
+info: 
+  title: UrlShortener
+  description: open api specification for url-shortener
+  version: 1.0.0
+components:
+  schemas:
+    User:
+      type: object
+      properties: 
+        id:
+          type: integer
+          format: int64
+        name: 
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+    Redirects:
+      description: number of redirects via shortened link
+      type: object
+      properties:
+        month:
+          description: number of redirects per last month
+          type: integer
+          format: int64
+        week:
+          description: number of redirects per last week
+          type: integer
+          format: int64
+        today:
+          description: number of redirects per last day
+          type: integer
+          format: int64   
+    Url:
+      type: object
+      properties:
+        id:
+          description: id of url object
+          type: integer
+          format: int64
+        raw: 
+          description: raw url before shortening
+          type: string
+          format: url
+        shortened:
+          description: shortened url
+          type: string
+          format: url
+        userId:
+          description: id of user who created int64
+          type: integer
+          format: int64
+        numOfredirects:
+          type: object
+          $ref: "#/components/schemas/Redirects"       
+paths:
+  /user/create:
+    post:
+      operationId: create user
+      parameters:
+      - in: query
+        name: user
+        schema:
+          $ref: "#/components/schemas/User"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                description: user id
+                type: integer
+                format: int64
+        '400':
+          description: wrong format
+          content: {}
+  /user/login:
+    post:
+      operationId: create user
+      parameters:
+      - name: user
+        in: query
+        schema:
+          format: string
+      - name: password
+        in: query
+        schema: 
+          format: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '400':
+          description: wrong login or password 
+          content: {}
+  /url:
+    post:
+      operationId: shortenUrl
+      description: post url to shorten it
+      parameters:
+      - name: rawUrl
+        in: query
+        schema:
+          type: string
+          format: url
+      responses:
+        '200':
+          description: successful creation of url object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Url"
+        '400':
+          description: something went wrong
+          content: {}
+    get:
+      operationId: getUrl
+      description: get url object
+      parameters:
+      - name: id
+        in: query
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful getting url object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Url"
+# TODO: create get Statistics, get All Urls for user
