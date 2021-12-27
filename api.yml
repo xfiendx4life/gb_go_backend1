@@ -134,4 +134,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Url"
+  /urls:
+    get:
+      operationId: getAllUrlsForUser
+      description: get all url objects created by certain user
+      parameters:
+      - name: id
+        description: id of user created urls
+        in: query
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Url"
+        '400':
+          description: wrong parameters
+          content: {}
+  /redirects:
+    get:
+      operationId: getAllRedirectsForUrl
+      description: get all redirects for url with certain id
+      parameters:
+      - name: id
+        description: id of url
+        in: query
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Redirects"
+        '400':
+          description: wrong parameters
+          content: {}
+              
 # TODO: create get Statistics, get All Urls for user
