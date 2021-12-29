@@ -178,5 +178,26 @@ paths:
         '400':
           description: wrong parameters
           content: {}
-              
-# TODO: create get Statistics, get All Urls for user
+  /{shortenedUrl}:
+    get:
+      operationId: redirectToUrl
+      description: main endpoint to redirect via shortened url
+      parameters:
+      - name: shortenedUrl
+        description: shortened url
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '301':
+          description: successful redirect
+          headers:
+            Location: 
+              schema:
+                type: string
+                format: url
+                example: https://google.com
+        '404':
+          description: not found
+          content: {}
