@@ -10,8 +10,8 @@ CREATE TABLE urls (
     raw VARCHAR(1000) NOT NULL,
     shortened VARCHAR(256) NOT NULL,
     user_id INTEGER NOT NULL,
-    month INTEGER,
-    week INTEGER,
-    day INTEGER,
+    month INTEGER DEFAULT 0,
+    week INTEGER DEFAULT 0,
+    day INTEGER DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );

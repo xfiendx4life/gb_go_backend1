@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func InitLogger(level *zapcore.Level, filelog string) *zap.SugaredLogger {
+func InitLogger(level zapcore.Level, filelog string) *zap.SugaredLogger {
 	var output io.Writer
 	var encoder zapcore.Encoder
 	var err error
@@ -25,7 +25,6 @@ func InitLogger(level *zapcore.Level, filelog string) *zap.SugaredLogger {
 		encoder = zapcore.NewConsoleEncoder(zap.NewProductionEncoderConfig()) // using simple console
 
 	}
-
 	writeSyncer := zapcore.AddSync(output)
 	core := zapcore.NewCore(encoder, writeSyncer, level)
 	return zap.New(core).Sugar()
