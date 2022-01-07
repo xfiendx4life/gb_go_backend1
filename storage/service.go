@@ -116,15 +116,15 @@ func (pg *PG) AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger)
 }
 
 // TODO: Test it!
-func (pg *PG) GetUrl(ctx context.Context, id int, z *zap.SugaredLogger) (*models.Url, error) {
+func (pg *PG) GetUrl(ctx context.Context, userId int, z *zap.SugaredLogger) (*models.Url, error) {
 	select {
 	case <-ctx.Done():
 		z.Error("done with context")
 		return nil, fmt.Errorf("done with context")
 	default:
-		q := `SELECT * FROM urls WHERE id=$1;`
+		q := `SELECT * FROM urls WHERE user_id=$1;`
 		u := models.Url{}
-		err := pg.dbPool.QueryRow(ctx, q, id).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
+		err := pg.dbPool.QueryRow(ctx, q, userId).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
 		if err != nil {
 			z.Errorf("can't get url by id: %s", err)
 			return nil, fmt.Errorf("can't get url by id: %s", err)
