@@ -164,3 +164,20 @@ func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]
 		return urls, nil
 	}
 }
+
+func (pg *PG) GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error) {
+	select {
+	case <-ctx.Done():
+		z.Error("done with context")
+		return nil, fmt.Errorf("done with context")
+	default:
+		q := `SELECT * FROM urls WHERE shortened=$1;`
+		u := models.Url{}
+		err := pg.dbPool.QueryRow(ctx, q, shortened).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
+		if err != nil {
+			z.Errorf("can't get url by shortened: %s", err)
+			return nil, fmt.Errorf("can't get url by shortened: %s", err)
+		}
+		return &u, nil
+	}
+}

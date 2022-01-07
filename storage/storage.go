@@ -15,6 +15,7 @@ type Storage interface {
 	AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger) error
 	GetUrl(ctx context.Context, id int, z *zap.SugaredLogger) (*models.Url, error)
 	GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error)
+	GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error)
 }
 
 type PG struct {

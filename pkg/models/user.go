@@ -11,3 +11,11 @@ type User struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
 }
+
+func NewUser(name, password, email string) *User {
+	return &User{
+		Name:     name,
+		Password: password,
+		Email:    email,
+	}
+}

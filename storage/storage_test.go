@@ -161,3 +161,24 @@ func TestGetUrls(t *testing.T) {
 	assert.Equal(t, "0", string(urls[0].Raw[len(urls[0].Raw)-1]))
 
 }
+
+func TestGetUrlByShortened(t *testing.T) {
+	ctx := context.Background()
+	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	assert.NoError(t, err)
+	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
+	var userId int
+	err = pg.dbPool.QueryRow(ctx, q, "TestGetUrlBySH", "TestGetUrlBySH", "somemail@fnd.ru").Scan(&userId)
+	assert.NoError(t, err)
+	url := models.Url{
+		Raw:       "https://google.com",
+		Shortened: "TestGetUrlByShortened",
+		UserId:    userId,
+	}
+	q = `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
+	err = pg.dbPool.QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId).Scan(&url.Id)
+	assert.NoError(t, err)
+	res, err := pg.GetUrlByShortened(ctx, "TestGetUrlByShortened", lgr)
+	require.NoError(t, err)
+	assert.Equal(t, url, *res)
+}
