@@ -13,6 +13,10 @@ import (
 	"go.uber.org/zap"
 )
 
+func New() Storage {
+	return &PG{}
+}
+
 // TODO: change this function go get all configuration from config object
 func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger) (err error) {
 	// add cofiguration
@@ -130,5 +134,33 @@ func (pg *PG) GetUrl(ctx context.Context, userId int, z *zap.SugaredLogger) (*mo
 			return nil, fmt.Errorf("can't get url by id: %s", err)
 		}
 		return &u, nil
+	}
+}
+
+func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error) {
+	select {
+	case <-ctx.Done():
+		z.Error("done with context")
+		return nil, fmt.Errorf("done with context")
+	default:
+		q := `SELECT * FROM urls WHERE user_id = $1`
+		rows, err := pg.dbPool.Query(ctx, q, userID)
+		if err != nil {
+			z.Errorf("can't get urls: %s", err)
+			return nil, fmt.Errorf("can't get urls: %s", err)
+		}
+		defer rows.Close()
+		urls := make([]models.Url, 0)
+		for rows.Next() {
+			url := models.Url{}
+			err := rows.Scan(&url.Id, &url.Raw, &url.Shortened, &url.UserId,
+				&url.RedirectsNum.Month, &url.RedirectsNum.Week, &url.RedirectsNum.Today)
+			if err != nil {
+				z.Errorf("can't parse urls: %s", err)
+				return nil, fmt.Errorf("can't parse urls: %s", err)
+			}
+			urls = append(urls, url)
+		}
+		return urls, nil
 	}
 }
