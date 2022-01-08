@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type Delivery interface {
+type Deliver interface {
 	Login(ectx echo.Context) error
 	Create(ectx echo.Context) error
 }
@@ -18,8 +18,3 @@ type UseCase interface {
 	Validate(ctx context.Context, name, password string, z *zap.SugaredLogger) (bool, error)
 	Add(ctx context.Context, name, password, email string, z *zap.SugaredLogger) (*models.User, error)
 }
-
-// type Repository interface {
-// 	Get(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error)
-// 	Add(ctx context.Context, name, password, email string, z *zap.SugaredLogger) (*models.User, error)
-// }
