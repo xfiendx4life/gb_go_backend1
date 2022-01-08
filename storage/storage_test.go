@@ -95,9 +95,9 @@ func TestGetUserError(t *testing.T) {
 	ctx := context.Background()
 	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
 	assert.NoError(t, err)
-	_, err = pg.GetUserByLogin(ctx, "TestGetUserError", lgr)
-	assert.Error(t, err)
-
+	u, err := pg.GetUserByLogin(ctx, "TestGetUserError", lgr)
+	assert.NoError(t, err)
+	assert.Equal(t, models.User{}, *u)
 }
 
 func TestAddUrl(t *testing.T) {

@@ -2,12 +2,14 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
 	"go.uber.org/zap"
@@ -95,6 +97,9 @@ func (pg *PG) GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLo
 		err := pg.dbPool.QueryRow(ctx, q, login).Scan(&u.Id, &u.Name, &u.Password, &u.Email)
 		if err != nil {
 			z.Errorf("can't get user by name: %s", err)
+			if errors.Is(err, pgx.ErrNoRows) {
+				return &models.User{}, nil
+			}
 			return nil, fmt.Errorf("can't get user by name: %s", err)
 		}
 		return &u, nil
