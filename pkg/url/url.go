@@ -3,13 +3,13 @@ package url
 import (
 	"context"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
 	"go.uber.org/zap"
 )
 
 type UseCase interface {
-	Add(ctx context.Context, raw string, z *zap.SugaredLogger) (shortened string, err error)
+	Add(ctx context.Context, raw string, userId int, z *zap.SugaredLogger) (shortened string, err error)
 	// * Get method changes stats
 	Get(ctx context.Context, shortened string, z *zap.SugaredLogger) (raw string, err error)
 	List(ctx context.Context, userId int, z *zap.SugaredLogger) ([]models.Url, error)
