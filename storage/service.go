@@ -124,31 +124,13 @@ func (pg *PG) AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger)
 	}
 }
 
-// TODO: Test it!
-func (pg *PG) GetUrl(ctx context.Context, userId int, z *zap.SugaredLogger) (*models.Url, error) {
-	select {
-	case <-ctx.Done():
-		z.Error("done with context")
-		return nil, fmt.Errorf("done with context")
-	default:
-		q := `SELECT * FROM urls WHERE user_id=$1;`
-		u := models.Url{}
-		err := pg.dbPool.QueryRow(ctx, q, userId).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
-		if err != nil {
-			z.Errorf("can't get url by id: %s", err)
-			return nil, fmt.Errorf("can't get url by id: %s", err)
-		}
-		return &u, nil
-	}
-}
-
 func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error) {
 	select {
 	case <-ctx.Done():
 		z.Error("done with context")
 		return nil, fmt.Errorf("done with context")
 	default:
-		q := `SELECT * FROM urls WHERE user_id = $1`
+		q := `SELECT id, raw, shortened, user_id FROM urls WHERE user_id = $1`
 		rows, err := pg.dbPool.Query(ctx, q, userID)
 		if err != nil {
 			z.Errorf("can't get urls: %s", err)
@@ -158,8 +140,8 @@ func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]
 		urls := make([]models.Url, 0)
 		for rows.Next() {
 			url := models.Url{}
-			err := rows.Scan(&url.Id, &url.Raw, &url.Shortened, &url.UserId,
-				&url.RedirectsNum.Month, &url.RedirectsNum.Week, &url.RedirectsNum.Today)
+			err := rows.Scan(&url.Id, &url.Raw, &url.Shortened, &url.UserId)
+			//	// &url.RedirectsNum.Month, &url.RedirectsNum.Week, &url.RedirectsNum.Today)
 			if err != nil {
 				z.Errorf("can't parse urls: %s", err)
 				return nil, fmt.Errorf("can't parse urls: %s", err)
@@ -176,9 +158,9 @@ func (pg *PG) GetUrlByShortened(ctx context.Context, shortened string, z *zap.Su
 		z.Error("done with context")
 		return nil, fmt.Errorf("done with context")
 	default:
-		q := `SELECT * FROM urls WHERE shortened=$1;`
+		q := `SELECT id, raw, shortened, user_id FROM urls WHERE shortened=$1;`
 		u := models.Url{}
-		err := pg.dbPool.QueryRow(ctx, q, shortened).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
+		err := pg.dbPool.QueryRow(ctx, q, shortened).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId) ////, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
 		if err != nil {
 			z.Errorf("can't get url by shortened: %s", err)
 			return nil, fmt.Errorf("can't get url by shortened: %s", err)

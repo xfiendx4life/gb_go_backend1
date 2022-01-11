@@ -13,7 +13,7 @@ type Storage interface {
 	AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error
 	GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error)
 	AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger) error
-	GetUrl(ctx context.Context, id int, z *zap.SugaredLogger) (*models.Url, error)
+	// //GetUrl(ctx context.Context, id int, z *zap.SugaredLogger) (*models.Url, error)
 	GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error)
 	GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error)
 }

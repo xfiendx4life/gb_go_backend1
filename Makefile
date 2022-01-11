@@ -1,7 +1,7 @@
 docker_dir := ./storage/docker_runner
 init_db: $(docker_dir)
 	sudo bash $(docker_dir)/restart.sh 
-	sleep 2s 
+	sleep 3s 
 	sudo bash $(docker_dir)/migrate_up.sh
 test:
 	go test ./... coverprofile cover.out
