@@ -32,8 +32,8 @@ func setUp() {
 }
 
 func tearDown() {
-	os.Setenv("MAX_CONS", "0")
-	os.Setenv("MIN_CONS", "0")
+	// os.Setenv("MAX_CONS", "0")
+	// os.Setenv("MIN_CONS", "0")
 	pg.dbPool.Exec(context.Background(), "DELETE FROM urls;")
 	pg.dbPool.Exec(context.Background(), "DELETE FROM users;")
 	pg.dbPool.Exec(context.Background(), "ALTER SEQUENCE urls_id_seq RESTART WITH 1;")
@@ -57,6 +57,7 @@ func TestAddUser(t *testing.T) {
 	}
 	err = pg.AddUser(ctx, &u, lgr)
 	assert.NoError(t, err)
+	tearDown()
 }
 
 func TestAddUserError(t *testing.T) {
@@ -72,6 +73,7 @@ func TestAddUserError(t *testing.T) {
 	}
 	err = pg.AddUser(ctx, &u, lgr)
 	assert.Error(t, err)
+	tearDown()
 }
 
 func TestGetUser(t *testing.T) {
@@ -89,6 +91,7 @@ func TestGetUser(t *testing.T) {
 	u, err := pg.GetUserByLogin(ctx, "TestGetUser", lgr)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, *u)
+	tearDown()
 }
 
 func TestGetUserError(t *testing.T) {
@@ -98,6 +101,7 @@ func TestGetUserError(t *testing.T) {
 	u, err := pg.GetUserByLogin(ctx, "TestGetUserError", lgr)
 	assert.NoError(t, err)
 	assert.Equal(t, models.User{}, *u)
+	tearDown()
 }
 
 func TestAddUrl(t *testing.T) {
@@ -114,6 +118,7 @@ func TestAddUrl(t *testing.T) {
 	err = pg.AddUrl(ctx, &url, lgr)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, url.Id)
+	tearDown()
 }
 
 func TestGetUrls(t *testing.T) {
@@ -138,7 +143,7 @@ func TestGetUrls(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 10, len(urls))
 	assert.Equal(t, "0", string(urls[0].Raw[len(urls[0].Raw)-1]))
-
+	tearDown()
 }
 
 func TestGetUrlByShortened(t *testing.T) {
@@ -160,4 +165,32 @@ func TestGetUrlByShortened(t *testing.T) {
 	res, err := pg.GetUrlByShortened(ctx, "TestGetUrlByShortened", lgr)
 	require.NoError(t, err)
 	assert.Equal(t, url, *res)
+	tearDown()
+}
+
+func TestAddRedirect(t *testing.T) {
+	ctx := context.Background()
+	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	assert.NoError(t, err)
+	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
+	var userId int
+	err = pg.dbPool.QueryRow(ctx, q, "TestAddRedirect", "TestAddRedirect", "somemail@fnd.ru").Scan(&userId)
+	assert.NoError(t, err)
+	url := models.Url{
+		Raw:       "https://google.com",
+		Shortened: "TestAddRedirect",
+		UserId:    userId,
+	}
+	q = `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
+	err = pg.dbPool.QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId).Scan(&url.Id)
+	assert.NoError(t, err)
+
+	rdr := models.Redirects{
+		UrlId: url.Id,
+		Date:  time.Now(),
+	}
+	err = pg.AddRedirect(ctx, &rdr, lgr)
+	assert.NoError(t, err)
+	assert.NotEqual(t, 0, rdr.Id)
+	tearDown()
 }

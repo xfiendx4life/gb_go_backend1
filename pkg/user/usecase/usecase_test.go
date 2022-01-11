@@ -52,6 +52,14 @@ func (mc *mockStorage) GetUrlByShortened(ctx context.Context, shortened string, 
 	return &models.Url{}, nil
 }
 
+func (mc *mockStorage) AddRedirect(ctx context.Context, r *models.Redirects, z *zap.SugaredLogger) error {
+	return nil
+}
+
+func (mc *mockStorage) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) (*models.Redirects, error) {
+	return &models.Redirects{}, nil
+}
+
 func TestValidateCorrect(t *testing.T) {
 	uc := usecase.New(&mockStorage{})
 	res, err := uc.Validate(ctx, "testname", "correctPassword", lgr)

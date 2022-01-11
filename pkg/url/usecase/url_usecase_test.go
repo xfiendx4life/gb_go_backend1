@@ -48,6 +48,14 @@ func (mc *mockStorage) GetUrlByShortened(ctx context.Context, shortened string, 
 	return &models.Url{}, nil
 }
 
+func (mc *mockStorage) AddRedirect(ctx context.Context, r *models.Redirects, z *zap.SugaredLogger) error {
+	return nil
+}
+
+func (mc *mockStorage) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) (*models.Redirects, error) {
+	return &models.Redirects{}, nil
+}
+
 var (
 	lgr = logger.InitLogger(zapcore.DebugLevel, "")
 	ctx = context.Background()
