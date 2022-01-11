@@ -4,7 +4,7 @@ init_db: $(docker_dir)
 	sleep 3s 
 	sudo bash $(docker_dir)/migrate_up.sh
 test:
-	go test ./... coverprofile cover.out
+	go test ./... -coverprofile=cover.out
 test-integration: $(docker_dir)
 	sudo bash $(docker_dir)/test/restart_test.sh 
 	sleep 2s 
