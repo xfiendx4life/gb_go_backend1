@@ -52,8 +52,8 @@ func (mc *mockStorage) AddRedirect(ctx context.Context, r *models.Redirects, z *
 	return nil
 }
 
-func (mc *mockStorage) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) (*models.Redirects, error) {
-	return &models.Redirects{}, nil
+func (mc *mockStorage) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) ([]models.Redirects, error) {
+	return []models.Redirects{}, nil
 }
 
 var (

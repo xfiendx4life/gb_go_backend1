@@ -185,6 +185,29 @@ func (pg *PG) AddRedirect(ctx context.Context, redirect *models.Redirects, z *za
 	}
 }
 
-func (pg *PG) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) (*models.Redirects, error) {
-	return &models.Redirects{}, nil
+func (pg *PG) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) ([]models.Redirects, error) {
+	select {
+	case <-ctx.Done():
+		z.Error("done with context")
+		return nil, fmt.Errorf("done with context")
+	default:
+		q := `SELECT * FROM redirects WHERE user_id = $1`
+		row, err := pg.dbPool.Query(ctx, q, urlId)
+		if err != nil {
+			z.Error("can't get rows %s", err)
+			return nil, fmt.Errorf("can't get rows %s", err)
+		}
+		defer row.Close()
+		res := make([]models.Redirects, 0)
+		for row.Next() {
+			red := models.Redirects{}
+			err = row.Scan(&red.Id, &red.UrlId, &red.Date)
+			if err != nil {
+				z.Error("can't scan row %s", err)
+				return nil, fmt.Errorf("can't scan row %s", err)
+			}
+			res = append(res, red)
+		}
+		return res, nil
+	}
 }

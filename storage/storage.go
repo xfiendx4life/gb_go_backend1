@@ -16,7 +16,7 @@ type Storage interface {
 	GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error)
 	GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error)
 	AddRedirect(ctx context.Context, redirect *models.Redirects, z *zap.SugaredLogger) error
-	GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) (*models.Redirects, error)
+	GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) ([]models.Redirects, error)
 }
 
 type PG struct {

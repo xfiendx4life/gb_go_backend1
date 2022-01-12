@@ -194,3 +194,28 @@ func TestAddRedirect(t *testing.T) {
 	assert.NotEqual(t, 0, rdr.Id)
 	tearDown()
 }
+
+// func TestGetRedirects(t *testing.T) {
+// 	ctx := context.Background()
+// 	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+// 	assert.NoError(t, err)
+// 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
+// 	var userId int
+// 	err = pg.dbPool.QueryRow(ctx, q, "TestGetRedirects", "TestGetRedirects", "somemail@fnd.ru").Scan(&userId)
+// 	assert.NoError(t, err)
+// 	url := models.Url{
+// 		Raw:       "https://google.com",
+// 		Shortened: "TestGetRedirects",
+// 		UserId:    userId,
+// 	}
+// 	q = `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
+// 	err = pg.dbPool.QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId).Scan(&url.Id)
+// 	assert.NoError(t, err)
+// 	rdr := models.Redirects{
+// 		UrlId: url.Id,
+// 		Date:  time.Now() - time.Duration(time.Hour*48),
+// 	}
+// 	q = `INSERT INTO redirects (url_id, date_of_usage) VALUES ($1, $2) RETURNING id`
+// 	err = pg.dbPool.QueryRow(ctx, q, redirect.UrlId, redirect.Date).Scan(&redirect.Id)
+
+// }
