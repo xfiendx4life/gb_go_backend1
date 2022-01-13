@@ -34,6 +34,7 @@ func setUp() {
 func tearDown() {
 	// os.Setenv("MAX_CONS", "0")
 	// os.Setenv("MIN_CONS", "0")
+	pg.dbPool.Exec(context.Background(), "DELETE FROM redirects;")
 	pg.dbPool.Exec(context.Background(), "DELETE FROM urls;")
 	pg.dbPool.Exec(context.Background(), "DELETE FROM users;")
 	pg.dbPool.Exec(context.Background(), "ALTER SEQUENCE urls_id_seq RESTART WITH 1;")
@@ -195,27 +196,37 @@ func TestAddRedirect(t *testing.T) {
 	tearDown()
 }
 
-// func TestGetRedirects(t *testing.T) {
-// 	ctx := context.Background()
-// 	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
-// 	assert.NoError(t, err)
-// 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
-// 	var userId int
-// 	err = pg.dbPool.QueryRow(ctx, q, "TestGetRedirects", "TestGetRedirects", "somemail@fnd.ru").Scan(&userId)
-// 	assert.NoError(t, err)
-// 	url := models.Url{
-// 		Raw:       "https://google.com",
-// 		Shortened: "TestGetRedirects",
-// 		UserId:    userId,
-// 	}
-// 	q = `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
-// 	err = pg.dbPool.QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId).Scan(&url.Id)
-// 	assert.NoError(t, err)
-// 	rdr := models.Redirects{
-// 		UrlId: url.Id,
-// 		Date:  time.Now() - time.Duration(time.Hour*48),
-// 	}
-// 	q = `INSERT INTO redirects (url_id, date_of_usage) VALUES ($1, $2) RETURNING id`
-// 	err = pg.dbPool.QueryRow(ctx, q, redirect.UrlId, redirect.Date).Scan(&redirect.Id)
+func TestGetRedirects(t *testing.T) {
+	ctx := context.Background()
+	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	assert.NoError(t, err)
+	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
+	var userId int
+	err = pg.dbPool.QueryRow(ctx, q, "TestGetRedirects", "TestGetRedirects", "somemail@fnd.ru").Scan(&userId)
+	assert.NoError(t, err)
+	url := models.Url{
+		Raw:       "https://google.com",
+		Shortened: "TestGetRedirects",
+		UserId:    userId,
+	}
+	q = `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
+	err = pg.dbPool.QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId).Scan(&url.Id)
+	assert.NoError(t, err)
+	rdr := models.Redirects{
+		UrlId: url.Id,
+		Date:  time.Now().Add(time.Duration(-2) * time.Hour),
+	}
+	q = `INSERT INTO redirects (url_id, date_of_usage) VALUES ($1, $2) RETURNING id`
+	err = pg.dbPool.QueryRow(ctx, q, rdr.UrlId, rdr.Date).Scan(&rdr.Id)
 
-// }
+	rdr = models.Redirects{
+		UrlId: url.Id,
+		Date:  time.Now(),
+	}
+	q = `INSERT INTO redirects (url_id, date_of_usage) VALUES ($1, $2) RETURNING id`
+	err = pg.dbPool.QueryRow(ctx, q, rdr.UrlId, rdr.Date).Scan(&rdr.Id)
+	redirects, err := pg.GetRedirects(ctx, url.Id, lgr)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(redirects))
+	tearDown()
+}

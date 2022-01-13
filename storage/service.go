@@ -191,7 +191,7 @@ func (pg *PG) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger)
 		z.Error("done with context")
 		return nil, fmt.Errorf("done with context")
 	default:
-		q := `SELECT * FROM redirects WHERE user_id = $1`
+		q := `SELECT * FROM redirects WHERE url_id = $1`
 		row, err := pg.dbPool.Query(ctx, q, urlId)
 		if err != nil {
 			z.Error("can't get rows %s", err)
@@ -206,6 +206,7 @@ func (pg *PG) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger)
 				z.Error("can't scan row %s", err)
 				return nil, fmt.Errorf("can't scan row %s", err)
 			}
+			z.Infof("Got redirects: %v", red)
 			res = append(res, red)
 		}
 		return res, nil
