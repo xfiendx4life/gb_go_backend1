@@ -2,7 +2,11 @@ package usecase
 
 import (
 	"context"
+
+	crypto_rand "crypto/rand"
+	"encoding/binary"
 	"fmt"
+	math_rand "math/rand"
 
 	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/pkg/url"
@@ -14,12 +18,43 @@ type gres struct {
 	store storage.Storage
 }
 
+func getSeedNumber() (int64, error) {
+	var b [8]byte
+	_, err := crypto_rand.Read(b[:])
+	if err != nil {
+		return 0, fmt.Errorf("cannot seed math/rand package with cryptographically secure random number generator")
+	}
+	return int64(binary.LittleEndian.Uint64(b[:])), nil
+}
+
+// takes []byte of raw url and then performes random
+// permutation and takes 15 or less symbols for short link
+func NewUrl(raw string, userId int, z *zap.SugaredLogger) *models.Url {
+	bts := []byte(raw)
+	n, err := getSeedNumber()
+	if err != nil {
+		z.Error(err)
+	}
+	math_rand.Seed(n)
+	var i int
+	for i = 0; i < 15 && i < len(bts); i++ {
+		toChange := math_rand.Intn(len(bts) - i - 1 + i)
+		bts[i], bts[toChange] = bts[toChange], bts[i]
+		bts[i] += byte(math_rand.Intn(10))
+	}
+	return &models.Url{
+		Raw:       raw,
+		Shortened: string(bts[:i]),
+		UserId:    userId,
+	}
+}
+
 func New(st storage.Storage) url.UseCase {
 	return &gres{store: st}
 }
 
 func (g *gres) Add(ctx context.Context, raw string, userId int, z *zap.SugaredLogger) (shortened string, err error) {
-	url := models.NewUrl(raw, userId, z)
+	url := NewUrl(raw, userId, z)
 	err = g.store.AddUrl(ctx, url, z)
 	if err != nil {
 		z.Errorf("can't add url to storage: %s", err)

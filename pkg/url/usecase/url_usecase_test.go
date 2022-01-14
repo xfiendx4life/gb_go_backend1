@@ -76,3 +76,20 @@ func TestAddStorageError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Empty(t, short)
 }
+
+func TestNewUser(t *testing.T) {
+	set := make(map[string]struct{})
+	var err error
+	var i int
+	var u *models.Url
+	for i = 0; i < 10000; i++ {
+		u = usecase.NewUrl("TestNewUser", 1, lgr)
+		if _, ok := set[u.Shortened]; ok {
+			err = fmt.Errorf("already exists")
+			break
+		}
+		set[u.Shortened] = struct{}{}
+	}
+	assert.NoError(t, err, fmt.Sprintf("Url: %s, i: %d", u.Shortened, i))
+	
+}
