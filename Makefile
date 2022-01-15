@@ -7,7 +7,9 @@ test:
 	go test ./... -coverprofile=cover.out
 test-integration: $(docker_dir)
 	sudo bash $(docker_dir)/test/restart_test.sh 
-	sleep 2s 
+	sleep 3s 
 	sudo bash $(docker_dir)/test/migrate_test_up.sh
 	go test -tags=integration ./... -coverprofile cover.out
 	sudo docker stop postgres_test && sudo docker rm postgres_test
+run:
+	go run cmd/shrtener/main.go

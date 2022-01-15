@@ -16,5 +16,5 @@ type Deliver interface {
 
 type UseCase interface {
 	Validate(ctx context.Context, name, password string, z *zap.SugaredLogger) (bool, error)
-	Add(ctx context.Context, name, password, email string, z *zap.SugaredLogger) (*models.User, error)
+	Add(ctx context.Context, user *models.User, z *zap.SugaredLogger) error
 }

@@ -84,7 +84,8 @@ func TestValidateError(t *testing.T) {
 
 func TestAddUser(t *testing.T) {
 	uc := usecase.New(&mockStorage{})
-	u, err := uc.Add(ctx, "testname", "password", "email", lgr)
+	u := &models.User{Name: "testname", Password: "password", Email: "email"}
+	err := uc.Add(ctx, u, lgr)
 	assert.NoError(t, err)
 	assert.Equal(t, models.User{
 		Id:       1,
@@ -96,7 +97,7 @@ func TestAddUser(t *testing.T) {
 func TestAddUserError(t *testing.T) {
 	st := &mockStorage{err: errors.New("some error")}
 	uc := usecase.New(st)
-	u, err := uc.Add(ctx, "testname", "password", "email", lgr)
+	u := &models.User{Name: "testname", Password: "password", Email: "email"}
+	err := uc.Add(ctx, u, lgr)
 	assert.Error(t, err)
-	assert.Nil(t, u)
 }

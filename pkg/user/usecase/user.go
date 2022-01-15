@@ -28,16 +28,15 @@ func (g *gres) Validate(ctx context.Context, name, password string, z *zap.Sugar
 	return true, nil
 }
 
-func (g *gres) Add(ctx context.Context, name, password, email string, z *zap.SugaredLogger) (*models.User, error) {
-	u := models.NewUser(name, password, email)
+func (g *gres) Add(ctx context.Context, u *models.User, z *zap.SugaredLogger) error {
 	z.Infof("created new user %v", *u)
 	err := g.repo.AddUser(ctx, u, z)
 	if err != nil {
 		z.Errorf("can't add new user to storage: %s", err)
-		return nil, fmt.Errorf("can't add new user to storage: %s", err)
+		return fmt.Errorf("can't add new user to storage: %s", err)
 	}
 	z.Infof("user %v added to storage", u)
-	return u, nil
+	return nil
 }
 
 func New(repo storage.Storage) user.UseCase {
