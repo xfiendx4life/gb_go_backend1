@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v4"
@@ -22,18 +20,8 @@ func New() Storage {
 // TODO: change this function go get all configuration from config object
 func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger) (err error) {
 	// add cofiguration
-	Maxc, err := strconv.Atoi(os.Getenv("MAX_CONS"))
-	if err != nil {
-		z.Errorf("wrong format of env var: %s", err)
-		return fmt.Errorf("wrong format of env var %s", err)
-	}
-	Minc, err := strconv.Atoi(os.Getenv("MIN_CONS"))
-	if err != nil {
-		z.Errorf("wrong format of env var: %s", err)
-		return fmt.Errorf("wrong format of env var %s", err)
-	}
-	conf.MaxConns = int32(Maxc) // 10
-	conf.MinConns = int32(Minc) // 5
+	conf.MaxConns = 10
+	conf.MinConns = 5
 
 	conf.HealthCheckPeriod = 1 * time.Minute
 	conf.MaxConnLifetime = 24 * time.Hour
