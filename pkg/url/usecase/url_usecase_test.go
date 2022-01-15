@@ -91,5 +91,5 @@ func TestNewUser(t *testing.T) {
 		set[u.Shortened] = struct{}{}
 	}
 	assert.NoError(t, err, fmt.Sprintf("Url: %s, i: %d", u.Shortened, i))
-	
+
 }
