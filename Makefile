@@ -12,4 +12,5 @@ test-integration: $(docker_dir)
 	go test -tags=integration ./... -coverprofile cover.out
 	sudo docker stop postgres_test && sudo docker rm postgres_test
 run:
+	make init_db
 	go run cmd/shrtener/main.go
