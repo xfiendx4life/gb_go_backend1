@@ -37,15 +37,23 @@ func (mc *mockStorage) AddUrl(ctx context.Context, url *models.Url, z *zap.Sugar
 	url.Id = 1
 	return mc.err
 }
+
 func (mc *mockStorage) GetUrl(ctx context.Context, id int, z *zap.SugaredLogger) (*models.Url, error) {
-	return nil, nil
+	return &models.Url{
+		Raw:       "RawTestUrl",
+		Shortened: "shortenedTestUrl",
+	}, mc.err
 }
+
 func (mc *mockStorage) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error) {
 	return nil, nil
 }
 
 func (mc *mockStorage) GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error) {
-	return &models.Url{}, nil
+	return &models.Url{
+		Raw:       "RawTestUrl",
+		Shortened: "shortenedTestUrl",
+	}, mc.err
 }
 
 func (mc *mockStorage) AddRedirect(ctx context.Context, r *models.Redirects, z *zap.SugaredLogger) error {
@@ -92,4 +100,18 @@ func TestNewUser(t *testing.T) {
 	}
 	assert.NoError(t, err, fmt.Sprintf("Url: %s, i: %d", u.Shortened, i))
 
+}
+
+func TestGetNoErr(t *testing.T) {
+	uc := usecase.New(&mockStorage{})
+	raw, err := uc.Get(ctx, "shortenedTestUrl", lgr)
+	assert.NoError(t, err)
+	assert.Equal(t, "RawTestUrl", raw)
+}
+
+func TestGetErr(t *testing.T) {
+	uc := usecase.New(&mockStorage{err: fmt.Errorf("can't add error")})
+	raw, err := uc.Get(ctx, "SomeNotValidURL", lgr)
+	assert.Error(t, err)
+	assert.Equal(t, "", raw)
 }

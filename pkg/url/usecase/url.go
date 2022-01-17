@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	crypto_rand "crypto/rand"
 	"encoding/binary"
 	"fmt"
 	math_rand "math/rand"
 
+	"github.com/labstack/echo/v4"
 	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/pkg/url"
 	"github.com/xfiendx4life/gb_go_backend1/storage"
@@ -64,8 +66,30 @@ func (g *gres) Add(ctx context.Context, raw string, userId int, z *zap.SugaredLo
 	return url.Shortened, nil
 }
 
+func (g *gres) AddStats(ctx context.Context, urlID int, z *zap.SugaredLogger) error {
+	rdr := models.Redirects{
+		UrlId: urlID,
+		Date:  time.Now(),
+	}
+	err := g.store.AddRedirect(ctx, &rdr, z)
+	if err != nil {
+		z.Errorf("can't add stats of redirect: %s", err)
+		return fmt.Errorf("can't add stats of redirect: %s", err)
+	}
+	return nil
+}
+
 func (g *gres) Get(ctx context.Context, shortened string, z *zap.SugaredLogger) (raw string, err error) {
-	return "", nil
+	url, err := g.store.GetUrlByShortened(ctx, shortened, z)
+	if err != nil {
+		return "", echo.ErrBadRequest
+	}
+	err = g.AddStats(ctx, url.Id, z)
+	if err != nil {
+		z.Errorf("can't add stats to storage %s", err)
+		return "", echo.ErrInternalServerError
+	}
+	return url.Raw, nil
 }
 
 func (g *gres) List(ctx context.Context, userId int, z *zap.SugaredLogger) ([]models.Url, error) {
