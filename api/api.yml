@@ -103,18 +103,29 @@ paths:
       operationId: shortenUrl
       description: post url to shorten it
       parameters:
-      - name: rawUrl
+      - name: rawurl
         in: query
-        schema:
-          type: string
-          format: url
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rawurl:
+                  type: string
+                  format: url
+                userid:
+                  type: integer
       responses:
         '200':
           description: successful creation of url object
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Url"
+                type: object
+                properties:
+                  shortened:
+                    type: string
+                    format: url
         '400':
           description: something went wrong
           content: {}

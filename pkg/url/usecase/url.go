@@ -42,7 +42,7 @@ func NewUrl(raw string, userId int, z *zap.SugaredLogger) *models.Url {
 	for i = 0; i < 15 && i < len(bts); i++ {
 		toChange := math_rand.Intn(len(bts) - i - 1 + i)
 		bts[i], bts[toChange] = bts[toChange], bts[i]
-		bts[i] += byte(math_rand.Intn(10))
+		bts[i] -= byte(math_rand.Intn(10))
 	}
 	return &models.Url{
 		Raw:       raw,
@@ -66,6 +66,8 @@ func (g *gres) Add(ctx context.Context, raw string, userId int, z *zap.SugaredLo
 	return url.Shortened, nil
 }
 
+// TODO: test this
+// ? Maybe move it to Redirects usecase
 func (g *gres) AddStats(ctx context.Context, urlID int, z *zap.SugaredLogger) error {
 	rdr := models.Redirects{
 		UrlId: urlID,
@@ -93,5 +95,11 @@ func (g *gres) Get(ctx context.Context, shortened string, z *zap.SugaredLogger) 
 }
 
 func (g *gres) List(ctx context.Context, userId int, z *zap.SugaredLogger) ([]models.Url, error) {
-	return []models.Url{}, nil
+	urls, err := g.store.GetUrls(ctx, userId, z)
+	if err != nil {
+		z.Errorf("can't get urls for user_id %d, error: %s", userId, err)
+		return nil, fmt.Errorf("can't get urls for user_id %d, error: %s", userId, err)
+	}
+
+	return urls, nil
 }

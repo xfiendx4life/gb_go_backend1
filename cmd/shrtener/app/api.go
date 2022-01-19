@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/labstack/echo/v4"
+	urlDel "github.com/xfiendx4life/gb_go_backend1/pkg/url/deliver"
+	urlCase "github.com/xfiendx4life/gb_go_backend1/pkg/url/usecase"
 	userDel "github.com/xfiendx4life/gb_go_backend1/pkg/user/deliver"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/user/usecase"
+	userCase "github.com/xfiendx4life/gb_go_backend1/pkg/user/usecase"
 	"github.com/xfiendx4life/gb_go_backend1/storage"
 	"go.uber.org/zap"
 )
@@ -21,8 +23,11 @@ func App(z *zap.SugaredLogger) {
 	if err != nil {
 		log.Fatalf("can't connect to storage")
 	}
-	user := usecase.New(store)
+	user := userCase.New(store)
 	userDeliver := userDel.New(user, z)
+	url := urlCase.New(store)
+	urlDeliver := urlDel.New(url, z)
 	server.POST("/user/create", userDeliver.Create)
+	server.POST("/url", urlDeliver.Save)
 	log.Fatal(server.Start(port))
 }
