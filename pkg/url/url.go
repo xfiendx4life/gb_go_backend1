@@ -17,6 +17,6 @@ type UseCase interface {
 
 type Deliver interface {
 	Save(ectx echo.Context) error
-	Get(ectx echo.Context) (*models.Url, error)
+	Get(ectx echo.Context) (string, error)
 	List(ectx echo.Context) ([]models.Url, error)
 }

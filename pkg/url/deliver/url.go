@@ -2,6 +2,9 @@ package deliver
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
@@ -37,15 +40,31 @@ func (u *urlDeliver) Save(ectx echo.Context) error {
 		u.z.Errorf("can't add url: %s", err)
 		return echo.ErrBadRequest
 	}
-	return ectx.JSON(200, struct {
+	return ectx.JSON(http.StatusCreated, struct {
 		Shortened string `json:"shortened"`
 	}{Shortened: sh})
 }
 
-func (u *urlDeliver) Get(ectx echo.Context) (*models.Url, error) {
-	return nil, nil
+func (u *urlDeliver) Get(ectx echo.Context) (string, error) {
+	shortened := ectx.Param("shortened")
+	url, err := u.usecase.Get(ectx.Request().Context(), shortened, u.z)
+	if err != nil {
+		u.z.Errorf("Can't get url: %s", err)
+		return "", fmt.Errorf("can't get url: %s", err)
+	}
+	return url, nil
 }
 
 func (u *urlDeliver) List(ectx echo.Context) ([]models.Url, error) {
-	return nil, nil
+	id, err := strconv.Atoi(ectx.QueryParam("id"))
+	if err != nil {
+		u.z.Errorf("can't parse id param to string %s", err)
+		return nil, fmt.Errorf("can't parse id param to string %s", err)
+	}
+	ms, err := u.usecase.List(ectx.Request().Context(), id, u.z)
+	if err != nil {
+		u.z.Errorf("can't get list: %s", err)
+		return nil, fmt.Errorf("can't get list: %s", err)
+	}
+	return ms, nil
 }
