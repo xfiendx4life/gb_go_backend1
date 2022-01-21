@@ -10,7 +10,7 @@ echo "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 sudo rm -rf $DIR/_data
 
 sudo docker run -d \
-    -p 5432:5432 \
+    -p 5433:5432 \
     --name postgres \
     -e POSTGRES_PASSWORD=123456 \
     -e PGDATA=/var/lib/postgresql/data/pgdata \

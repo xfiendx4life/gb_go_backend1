@@ -2,6 +2,8 @@ package usecase_test
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"testing"
 
@@ -32,9 +34,10 @@ func (mc *mockStorage) AddUser(ctx context.Context, user *models.User, z *zap.Su
 }
 
 func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error) {
+	s := md5.Sum([]byte("correctPassword"))
 	return &models.User{
 		Name:     "testname",
-		Password: "correctPassword",
+		Password: hex.EncodeToString(s[:]),
 	}, mc.err
 }
 
@@ -90,7 +93,7 @@ func TestAddUser(t *testing.T) {
 	assert.Equal(t, models.User{
 		Id:       1,
 		Name:     "testname",
-		Password: "password",
+		Password: "5f4dcc3b5aa765d61d8327deb882cf99",
 		Email:    "email"}, *u)
 }
 

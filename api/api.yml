@@ -94,7 +94,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                type: object
+                properties:
+                  token:
+                    type: string
         '400':
           description: wrong login or password 
           content: {}

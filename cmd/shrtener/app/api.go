@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	urlDel "github.com/xfiendx4life/gb_go_backend1/pkg/url/deliver"
@@ -24,10 +25,14 @@ func App(z *zap.SugaredLogger) {
 		log.Fatalf("can't connect to storage")
 	}
 	user := userCase.New(store)
-	userDeliver := userDel.New(user, z)
+	userDeliver := userDel.New(user,
+		time.Now().Add(time.Hour).Unix(), // ! read from congig
+		"somesecret",                     // ! Read from config
+		z)
 	url := urlCase.New(store)
 	urlDeliver := urlDel.New(url, z)
 	server.POST("/user/create", userDeliver.Create)
+	server.GET("/user/login", userDeliver.Login)
 	server.POST("/url", urlDeliver.Save)
 	log.Fatal(server.Start(port))
 }

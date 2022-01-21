@@ -8,6 +8,8 @@ require (
 	go.uber.org/zap v1.19.1
 )
 
+require github.com/golang-jwt/jwt/v4 v4.2.0
+
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect

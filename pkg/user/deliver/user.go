@@ -3,7 +3,9 @@ package deliver
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/pkg/user"
@@ -11,26 +13,58 @@ import (
 )
 
 type EchoDeliver struct {
-	User user.UseCase
-	z    *zap.SugaredLogger
+	User      user.UseCase
+	z         *zap.SugaredLogger
+	ttl       int64
+	secretKey []byte
 }
 
-func New(useCase user.UseCase, lgr *zap.SugaredLogger) user.Deliver {
+func New(useCase user.UseCase, ttl int64, secret string, lgr *zap.SugaredLogger) user.Deliver {
 	return &EchoDeliver{
-		User: useCase,
-		z:    lgr,
+		User:      useCase,
+		z:         lgr,
+		ttl:       ttl,
+		secretKey: []byte(secret),
 	}
 }
 
+type Payload struct {
+	jwt.StandardClaims
+	Name string
+}
+
 func (e *EchoDeliver) Login(ectx echo.Context) error {
-	return nil
+	name := ectx.QueryParam("name")
+	password := ectx.QueryParam("password")
+	e.z.Infof("attempt to login with name: %s and password: %s", name, password)
+	if name == "" || password == "" {
+		e.z.Errorf("Empty login or password")
+		return echo.ErrUnauthorized
+	}
+	if ok, err := e.User.Validate(ectx.Request().Context(), name, password, e.z); err != nil || !ok {
+		e.z.Errorf("can't validate password %s for user %s -> %s ", name, password, err)
+		return echo.ErrUnauthorized
+	}
+	e.z.Infof("Validation succeded")
+	payload := Payload{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: e.ttl,
+		},
+		Name: name,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &payload)
+
+	signedToken, err := token.SignedString(e.secretKey)
+	if err != nil {
+		return err
+	}
+
+	ectx.Response().Header().Set("X-Expires-After", time.Unix(e.ttl, 0).String())
+	return ectx.JSON(http.StatusOK, signedToken)
 }
 
 func (e *EchoDeliver) Create(ectx echo.Context) (err error) {
 	u := &models.User{}
-	// //if err = ectx.Bind(u); err != nil {
-	// 	//return echo.ErrBadRequest
-	// //}
 	err = json.NewDecoder(ectx.Request().Body).Decode(u)
 	if err != nil {
 		return echo.ErrInternalServerError

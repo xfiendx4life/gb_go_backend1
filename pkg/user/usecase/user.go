@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
@@ -21,15 +23,21 @@ func (g *gres) Validate(ctx context.Context, name, password string, z *zap.Sugar
 		z.Errorf("can't validate user: %s", err)
 		return false, fmt.Errorf("can't validate user: %s", err)
 	}
-	if u.Password != password {
+	if u.Password != hashPassword(password) {
 		z.Info("No such user or wrong password")
 		return false, nil
 	}
 	return true, nil
 }
 
+func hashPassword(rawPass string) string {
+	s := md5.Sum([]byte(rawPass))
+	return hex.EncodeToString(s[:])
+}
+
 func (g *gres) Add(ctx context.Context, u *models.User, z *zap.SugaredLogger) error {
 	z.Infof("created new user %v", *u)
+	u.Password = hashPassword(u.Password)
 	err := g.repo.AddUser(ctx, u, z)
 	if err != nil {
 		z.Errorf("can't add new user to storage: %s", err)
