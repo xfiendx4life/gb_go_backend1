@@ -5,7 +5,7 @@ import (
 
 	//// "github.com/labstack/echo"
 	"github.com/labstack/echo/v4"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"go.uber.org/zap"
 )
 

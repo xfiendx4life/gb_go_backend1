@@ -2,22 +2,15 @@ package usecase_test
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xfiendx4life/gb_go_backend1/internal/logger"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/user/usecase"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/usecase"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-)
-
-var (
-	lgr = logger.InitLogger(zapcore.DebugLevel, "")
-	ctx = context.Background()
 )
 
 type mockStorage struct {
@@ -34,25 +27,33 @@ func (mc *mockStorage) AddUser(ctx context.Context, user *models.User, z *zap.Su
 }
 
 func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error) {
-	s := md5.Sum([]byte("correctPassword"))
 	return &models.User{
 		Name:     "testname",
-		Password: hex.EncodeToString(s[:]),
+		Password: "correctPassword",
 	}, mc.err
 }
 
 func (mc *mockStorage) AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger) error {
-	return nil
+	url.Id = 1
+	return mc.err
 }
+
 func (mc *mockStorage) GetUrl(ctx context.Context, id int, z *zap.SugaredLogger) (*models.Url, error) {
-	return nil, nil
+	return &models.Url{
+		Raw:       "RawTestUrl",
+		Shortened: "shortenedTestUrl",
+	}, mc.err
 }
+
 func (mc *mockStorage) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error) {
 	return nil, nil
 }
 
 func (mc *mockStorage) GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error) {
-	return &models.Url{}, nil
+	return &models.Url{
+		Raw:       "RawTestUrl",
+		Shortened: "shortenedTestUrl",
+	}, mc.err
 }
 
 func (mc *mockStorage) AddRedirect(ctx context.Context, r *models.Redirects, z *zap.SugaredLogger) error {
@@ -63,44 +64,54 @@ func (mc *mockStorage) GetRedirects(ctx context.Context, urlId int, z *zap.Sugar
 	return []models.Redirects{}, nil
 }
 
-func TestValidateCorrect(t *testing.T) {
-	uc := usecase.New(&mockStorage{})
-	res, err := uc.Validate(ctx, "testname", "correctPassword", lgr)
+var (
+	lgr = logger.InitLogger(zapcore.DebugLevel, "")
+	ctx = context.Background()
+)
+
+func TestAddUrl(t *testing.T) {
+	st := mockStorage{err: nil}
+	uc := usecase.New(&st)
+	short, err := uc.Add(ctx, "testurl", 1, lgr)
 	assert.NoError(t, err)
-	assert.True(t, res)
+	assert.NotEmpty(t, short)
 }
 
-func TestValidateIncorrect(t *testing.T) {
-	uc := usecase.New(&mockStorage{})
-	res, err := uc.Validate(ctx, "testname", "incorrectPassword", lgr)
-	assert.NoError(t, err)
-	assert.False(t, res)
-}
-
-func TestValidateError(t *testing.T) {
-	st := &mockStorage{err: errors.New("some error")}
-	uc := usecase.New(st)
-	res, err := uc.Validate(ctx, "testname", "incorrectPassword", lgr)
+func TestAddStorageError(t *testing.T) {
+	st := mockStorage{err: fmt.Errorf("some storage error")}
+	uc := usecase.New(&st)
+	short, err := uc.Add(ctx, "testurl", 1, lgr)
 	assert.Error(t, err)
-	assert.False(t, res)
+	assert.Empty(t, short)
 }
 
-func TestAddUser(t *testing.T) {
+func TestNewUser(t *testing.T) {
+	set := make(map[string]struct{})
+	var err error
+	var i int
+	var u *models.Url
+	for i = 0; i < 10000; i++ {
+		u = usecase.NewUrl("TestNewUser", 1, lgr)
+		if _, ok := set[u.Shortened]; ok {
+			err = fmt.Errorf("already exists")
+			break
+		}
+		set[u.Shortened] = struct{}{}
+	}
+	assert.NoError(t, err, fmt.Sprintf("Url: %s, i: %d", u.Shortened, i))
+
+}
+
+func TestGetNoErr(t *testing.T) {
 	uc := usecase.New(&mockStorage{})
-	u := &models.User{Name: "testname", Password: "password", Email: "email"}
-	err := uc.Add(ctx, u, lgr)
+	raw, err := uc.Get(ctx, "shortenedTestUrl", lgr)
 	assert.NoError(t, err)
-	assert.Equal(t, models.User{
-		Id:       1,
-		Name:     "testname",
-		Password: "5f4dcc3b5aa765d61d8327deb882cf99",
-		Email:    "email"}, *u)
+	assert.Equal(t, "RawTestUrl", raw)
 }
 
-func TestAddUserError(t *testing.T) {
-	st := &mockStorage{err: errors.New("some error")}
-	uc := usecase.New(st)
-	u := &models.User{Name: "testname", Password: "password", Email: "email"}
-	err := uc.Add(ctx, u, lgr)
+func TestGetErr(t *testing.T) {
+	uc := usecase.New(&mockStorage{err: fmt.Errorf("can't add error")})
+	raw, err := uc.Get(ctx, "SomeNotValidURL", lgr)
 	assert.Error(t, err)
+	assert.Equal(t, "", raw)
 }

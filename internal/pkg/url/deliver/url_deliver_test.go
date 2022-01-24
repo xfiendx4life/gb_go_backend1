@@ -12,9 +12,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/xfiendx4life/gb_go_backend1/internal/logger"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/url/deliver"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/url/usecase"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/deliver"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/usecase"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

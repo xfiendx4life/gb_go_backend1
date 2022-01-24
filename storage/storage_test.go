@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xfiendx4life/gb_go_backend1/internal/logger"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"go.uber.org/zap/zapcore"
 )
 

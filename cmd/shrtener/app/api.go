@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	urlDel "github.com/xfiendx4life/gb_go_backend1/pkg/url/deliver"
-	urlCase "github.com/xfiendx4life/gb_go_backend1/pkg/url/usecase"
-	userDel "github.com/xfiendx4life/gb_go_backend1/pkg/user/deliver"
-	userCase "github.com/xfiendx4life/gb_go_backend1/pkg/user/usecase"
+	urlDel "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/deliver"
+	urlCase "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/usecase"
+	userDel "github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/deliver"
+	userCase "github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/usecase"
 	"github.com/xfiendx4life/gb_go_backend1/storage"
 	"go.uber.org/zap"
 )

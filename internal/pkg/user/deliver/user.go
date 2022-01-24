@@ -7,8 +7,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/user"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/user"
 	"go.uber.org/zap"
 )
 

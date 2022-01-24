@@ -10,8 +10,8 @@ import (
 	math_rand "math/rand"
 
 	"github.com/labstack/echo/v4"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/url"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url"
 	"github.com/xfiendx4life/gb_go_backend1/storage"
 	"go.uber.org/zap"
 )
