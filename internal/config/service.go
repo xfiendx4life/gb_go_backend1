@@ -10,7 +10,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func InitConfig() Config {
+type fakestruct struct {
+	Timeout     int    `yaml:"timeout"`
+	LogLevel    string `yaml:"loglevel"`
+	LogFile     string `yaml:"logfile"`
+	ConfStorage `yaml:",inline"`
+	ConfAuth    `yaml:",inline"`
+}
+
+func New() Config {
 	return &ConfYML{}
 }
 
@@ -26,28 +34,64 @@ func (c *ConfYML) GetTimeOut() time.Duration {
 	return c.Timeout
 }
 
+func (st *ConfStorage) GetURI() string {
+	return st.Uri
+}
+
+func (st *ConfStorage) GetMaxCons() int {
+	return st.MaxCons
+}
+
+func (st *ConfStorage) GetMinCons() int {
+	return st.MinCons
+}
+
+func (a *ConfAuth) GetSecretKey() string {
+	return a.SecretKey
+}
+
+func (a *ConfAuth) GetTtl() int64 {
+	return a.Ttl
+}
+
 func ReadFromFile(path string, z *zap.SugaredLogger) (data []byte, err error) {
 	data, err = os.ReadFile(path)
 	if err != nil {
 		z.Errorf("can't open config file: %s", err)
 		return nil, fmt.Errorf("can't open config file: %s", err)
 	}
+	z.Infof("Read from file: %s", path)
 	return data, err
 }
 
+func (c *ConfYML) GetConfAuth() Auth {
+	return &c.ConfAuth
+}
+
+func (c *ConfYML) GetConfStorage() Storage {
+	return &c.ConfStorage
+}
+
 func (conf *ConfYML) ReadConfig(data []byte, z *zap.SugaredLogger) (err error) {
-	fakestruct := struct {
-		Timeout  int    `yaml:"timeout"`
-		LogLevel uint8  `yaml:"loglevel"`
-		LogFile  string `yaml:"logfile"`
-	}{}
-	err = yaml.Unmarshal(data, &fakestruct)
+	fake := fakestruct{}
+	err = yaml.Unmarshal(data, &fake)
 	if err != nil {
 		z.Errorf("can't unmarshall data: %s", err)
 		return fmt.Errorf("can't unmarshall data: %s", err)
 	}
-	conf.LogFile = fakestruct.LogFile
-	conf.Timeout = time.Duration(fakestruct.Timeout) * time.Second
-	conf.LogLevel = zapcore.Level(fakestruct.LogLevel)
+	var levels = map[string]zapcore.Level{
+		"debug":   zap.DebugLevel,
+		"info":    zap.InfoLevel,
+		"warning": zap.WarnLevel,
+		"error":   zap.ErrorLevel,
+		"panic":   zap.PanicLevel,
+		"fatal":   zap.FatalLevel,
+	}
+	conf.LogFile = fake.LogFile
+	conf.Timeout = time.Duration(fake.Timeout) * time.Second
+	conf.LogLevel = zapcore.Level(levels[fake.LogLevel])
+	conf.ConfStorage = fake.ConfStorage
+	conf.ConfAuth = fake.ConfAuth
+	z.Infof("Config file: %v", fake)
 	return nil
 }

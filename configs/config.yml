@@ -1,0 +1,8 @@
+timeout: 2
+loglevel: debug 
+logfile: access.txt
+uri: postgres://xfiendx4life:123456@172.17.0.2:5432/shortener
+maxcons: 10
+mincons: 5
+secretkey: somesecret
+ttl: 60

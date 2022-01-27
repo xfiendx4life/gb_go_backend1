@@ -1,5 +1,0 @@
-timeout: 2
-loglevel: 5
-logfile: access.txt
-max_cons: 10
-min_cons: 5

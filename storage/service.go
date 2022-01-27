@@ -9,6 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/xfiendx4life/gb_go_backend1/internal/config"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"go.uber.org/zap"
 )
@@ -18,10 +19,10 @@ func New() Storage {
 }
 
 // TODO: change this function go get all configuration from config object
-func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger) (err error) {
+func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger, config config.Storage) (err error) {
 	// add cofiguration
-	conf.MaxConns = 10
-	conf.MinConns = 5
+	conf.MaxConns = int32(config.GetMaxCons())
+	conf.MinConns = int32(config.GetMinCons())
 
 	conf.HealthCheckPeriod = 1 * time.Minute
 	conf.MaxConnLifetime = 24 * time.Hour
@@ -34,13 +35,13 @@ func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger) (err error) {
 	return nil
 }
 
-func (pg *PG) InitNewStorage(ctx context.Context, connection string, z *zap.SugaredLogger) error {
-	conf, err := pgxpool.ParseConfig(connection)
+func (pg *PG) InitNewStorage(ctx context.Context, z *zap.SugaredLogger, config config.Storage) error {
+	conf, err := pgxpool.ParseConfig(config.GetURI())
 	if err != nil {
 		z.Errorf("can't init storage: %s", err)
 		return fmt.Errorf("can't init storage: %s", err)
 	}
-	err = configurePool(conf, z)
+	err = configurePool(conf, z, config)
 	if err != nil {
 		z.Errorf("can't configure pool %s", err)
 		return fmt.Errorf("can't configure pool %s", err)

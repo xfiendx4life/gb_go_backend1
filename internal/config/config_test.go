@@ -18,9 +18,9 @@ func newLogger() *zap.SugaredLogger {
 }
 
 func TestReadConfig(t *testing.T) {
-	c := config.InitConfig()
+	c := config.New()
 	data := `timeout: 2
-loglevel: 5
+loglevel: fatal
 logfile: access.txt
 targetfile: target.csv`
 	lgr := newLogger()
@@ -31,8 +31,30 @@ targetfile: target.csv`
 	assert.Equal(t, "access.txt", c.GetLogFile())
 }
 
+func TestReadFullConfig(t *testing.T) {
+	c := config.New()
+	data := `timeout: 2
+loglevel: debug 
+logfile: access.txt 
+uri: postgres://xfiendx4life:123456@172.17.0.2:5432/shortener
+maxcons: 10
+mincons: 5
+secretkey: somesecret
+ttl: 60
+`
+	lgr := newLogger()
+	err := c.ReadConfig([]byte(data), lgr)
+	assert.NoError(t, err)
+	assert.Equal(t, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", c.GetConfStorage().GetURI())
+	assert.Equal(t, 10, c.GetConfStorage().GetMaxCons())
+	assert.Equal(t, 5, c.GetConfStorage().GetMinCons())
+	assert.Equal(t, "somesecret", c.GetConfAuth().GetSecretKey())
+	assert.Equal(t, int64(60), c.GetConfAuth().GetTtl())
+
+}
+
 func TestReadConfigError(t *testing.T) {
-	c := config.InitConfig()
+	c := config.New()
 	data := `some text`
 	lgr := newLogger()
 	err := c.ReadConfig([]byte(data), lgr)

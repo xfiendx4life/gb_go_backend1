@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/xfiendx4life/gb_go_backend1/internal/config"
 	"github.com/xfiendx4life/gb_go_backend1/internal/logger"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/usecase"
@@ -24,7 +25,7 @@ type mockStorage struct {
 	err error
 }
 
-func (mc *mockStorage) InitNewStorage(ctx context.Context, connection string, z *zap.SugaredLogger) error {
+func (mc *mockStorage) InitNewStorage(ctx context.Context, z *zap.SugaredLogger, conf config.Storage) error {
 	return nil
 }
 

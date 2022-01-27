@@ -32,8 +32,13 @@ func createTestFile(data []byte, z *zap.SugaredLogger) {
 func TestReadFromFile(t *testing.T) {
 	l := logger.InitLogger(zapcore.DebugLevel, "")
 	data := []byte(`timeout: 2
-loglevel: 5
-logfile: access.txt`)
+loglevel: debug 
+logfile: access.txt 
+uri: postgres://xfiendx4life:123456@172.17.0.2:5432/shortener
+maxcons: 10
+mincons: 5
+secretkey: somesecret
+ttl: 60`)
 	createTestFile(data, l)
 	res, err := config.ReadFromFile("test.yaml", l)
 	os.Remove("test.yaml")

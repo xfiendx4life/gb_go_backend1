@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/xfiendx4life/gb_go_backend1/internal/config"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"go.uber.org/zap"
 )
 
 type Storage interface {
-	InitNewStorage(ctx context.Context, connection string, z *zap.SugaredLogger) error
+	InitNewStorage(ctx context.Context, z *zap.SugaredLogger, config config.Storage) error
 	AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error
 	GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error)
 	AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger) error

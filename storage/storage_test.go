@@ -42,14 +42,31 @@ func tearDown() {
 	time.Sleep(time.Millisecond)
 }
 
+type mockConfStorage struct {
+}
+
+func (m *mockConfStorage) GetURI() string {
+	return "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener"
+}
+
+func (m *mockConfStorage) GetMaxCons() int {
+	return 10
+}
+
+func (m *mockConfStorage) GetMinCons() int {
+	return 5
+}
+
+var mc = mockConfStorage{}
+
 func TestConection(t *testing.T) {
-	err := pg.InitNewStorage(context.Background(), "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(context.Background(), lgr, &mc)
 	assert.NoError(t, err)
 }
 
 func TestAddUser(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	u := models.User{
 		Name:     "TestAddUser",
@@ -63,7 +80,7 @@ func TestAddUser(t *testing.T) {
 
 func TestAddUserError(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	_ = pg.dbPool.QueryRow(ctx, q, "TestAddUserError", "7892345", "somemail@fnd.ru")
@@ -79,7 +96,7 @@ func TestAddUserError(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	expected := models.User{
@@ -97,7 +114,7 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserError(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	u, err := pg.GetUserByLogin(ctx, "TestGetUserError", lgr)
 	assert.NoError(t, err)
@@ -107,7 +124,7 @@ func TestGetUserError(t *testing.T) {
 
 func TestAddUrl(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	_ = pg.dbPool.QueryRow(ctx, q, "TestAddUrl", "2300045", "somemail@fnd.ru")
@@ -124,7 +141,7 @@ func TestAddUrl(t *testing.T) {
 
 func TestGetUrls(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	var userId int
@@ -149,7 +166,7 @@ func TestGetUrls(t *testing.T) {
 
 func TestGetUrlByShortened(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	var userId int
@@ -171,7 +188,7 @@ func TestGetUrlByShortened(t *testing.T) {
 
 func TestAddRedirect(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	var userId int
@@ -198,7 +215,7 @@ func TestAddRedirect(t *testing.T) {
 
 func TestGetRedirects(t *testing.T) {
 	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener", lgr)
+	err := pg.InitNewStorage(ctx, lgr, &mc)
 	assert.NoError(t, err)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	var userId int
