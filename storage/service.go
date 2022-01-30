@@ -36,6 +36,7 @@ func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger, config config.Sto
 }
 
 func (pg *PG) InitNewStorage(ctx context.Context, z *zap.SugaredLogger, config config.Storage) error {
+
 	conf, err := pgxpool.ParseConfig(config.GetURI())
 	if err != nil {
 		z.Errorf("can't init storage: %s", err)

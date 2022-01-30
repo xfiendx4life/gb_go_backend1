@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -37,9 +39,13 @@ func App(z *zap.SugaredLogger) {
 		z.Fatalf("can't read config: %s", err)
 		return //
 	}
-	ctx := context.Background() // TODO Change for context with Timeout
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.GetTimeOut())*time.Second) // TODO hange for context with Timeout
+	defer cancel()
+	// ctx := context.Background()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	server := echo.New()
-	// server.Use(middlewares.RecoverMiddleware(z))
+
 	server.Use(middleware.Recover())
 	store := storage.New()
 	err = store.InitNewStorage(ctx, z, conf.GetConfStorage())
@@ -60,6 +66,15 @@ func App(z *zap.SugaredLogger) {
 	server.POST("/user/create", userDeliver.Create)
 	server.GET("/user/login", userDeliver.Login)
 	server.POST("/url", urlDeliver.Save, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
-	log.Fatal(server.Start(port))
-	// middleware.REcoverWithConfig()
+
+	go func() {
+		log.Fatal(server.Start(port))
+	}()
+	<-sigs
+	z.Errorf(("done with syscall"))
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.GetTimeOut().Seconds())) // TODO hange for context with Timeout
+	// defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		z.Fatalf("can't shutdown")
+	}
 }
