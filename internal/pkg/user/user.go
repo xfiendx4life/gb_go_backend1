@@ -18,3 +18,8 @@ type UseCase interface {
 	Validate(ctx context.Context, name, password string, z *zap.SugaredLogger) (bool, error)
 	Add(ctx context.Context, user *models.User, z *zap.SugaredLogger) error
 }
+
+type Repository interface {
+	AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error
+	GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error)
+}

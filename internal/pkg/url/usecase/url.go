@@ -12,12 +12,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url"
-	"github.com/xfiendx4life/gb_go_backend1/storage"
 	"go.uber.org/zap"
 )
 
 type gres struct {
-	store storage.Storage
+	store url.Repository
 }
 
 func getSeedNumber() (int64, error) {
@@ -51,7 +50,7 @@ func NewUrl(raw string, userId int, z *zap.SugaredLogger) *models.Url {
 	}
 }
 
-func New(st storage.Storage) url.UseCase {
+func New(st url.Repository) url.UseCase {
 	return &gres{store: st}
 }
 

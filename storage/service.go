@@ -57,6 +57,10 @@ func (pg *PG) InitNewStorage(ctx context.Context, z *zap.SugaredLogger, config c
 	return nil
 }
 
+func (pg *PG) GetDbPool() *pgxpool.Pool {
+	return pg.dbPool
+}
+
 func (pg *PG) AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error {
 	select {
 	case <-ctx.Done():

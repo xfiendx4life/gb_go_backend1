@@ -13,8 +13,10 @@ import (
 	"github.com/xfiendx4life/gb_go_backend1/internal/api/middlewares"
 	"github.com/xfiendx4life/gb_go_backend1/internal/config"
 	urlDel "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/deliver"
+	urlRepo "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/repository"
 	urlCase "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/usecase"
 	userDel "github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/deliver"
+	userRepo "github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/repository"
 	userCase "github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/usecase"
 	"github.com/xfiendx4life/gb_go_backend1/storage"
 	"go.uber.org/zap"
@@ -52,7 +54,7 @@ func App(z *zap.SugaredLogger) {
 	if err != nil {
 		log.Fatalf("can't connect to storage")
 	}
-	user := userCase.New(store)
+	user := userCase.New(userRepo.New(store))
 	ttl := conf.GetConfAuth().GetTtl()
 	dur := time.Duration(ttl) * time.Minute
 	z.Infof("expiry time %v", dur)
@@ -61,7 +63,7 @@ func App(z *zap.SugaredLogger) {
 		time.Now().Add(dur).Unix(),
 		conf.GetConfAuth().GetSecretKey(),
 		z)
-	url := urlCase.New(store)
+	url := urlCase.New(urlRepo.New(store))
 	urlDeliver := urlDel.New(url, z)
 	server.POST("/user/create", userDeliver.Create)
 	server.GET("/user/login", userDeliver.Login)

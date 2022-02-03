@@ -64,64 +64,6 @@ func TestConection(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestAddUser(t *testing.T) {
-	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, lgr, &mc)
-	assert.NoError(t, err)
-	u := models.User{
-		Name:     "TestAddUser",
-		Password: "03212345",
-		Email:    "somemail@fnd.ru",
-	}
-	err = pg.AddUser(ctx, &u, lgr)
-	assert.NoError(t, err)
-	tearDown()
-}
-
-func TestAddUserError(t *testing.T) {
-	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, lgr, &mc)
-	assert.NoError(t, err)
-	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
-	_ = pg.dbPool.QueryRow(ctx, q, "TestAddUserError", "7892345", "somemail@fnd.ru")
-	u := models.User{
-		Name:     "TestAddUserError",
-		Password: "2345",
-		Email:    "somemail@fnd.ru",
-	}
-	err = pg.AddUser(ctx, &u, lgr)
-	assert.Error(t, err)
-	tearDown()
-}
-
-func TestGetUser(t *testing.T) {
-	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, lgr, &mc)
-	assert.NoError(t, err)
-	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
-	expected := models.User{
-		Id:       1,
-		Name:     "TestGetUser",
-		Password: "2345",
-		Email:    "somemail@fnd.ru",
-	}
-	_ = pg.dbPool.QueryRow(ctx, q, expected.Name, expected.Password, expected.Email).Scan(&expected.Id)
-	u, err := pg.GetUserByLogin(ctx, "TestGetUser", lgr)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, *u)
-	tearDown()
-}
-
-func TestGetUserError(t *testing.T) {
-	ctx := context.Background()
-	err := pg.InitNewStorage(ctx, lgr, &mc)
-	assert.NoError(t, err)
-	u, err := pg.GetUserByLogin(ctx, "TestGetUserError", lgr)
-	assert.NoError(t, err)
-	assert.Equal(t, models.User{}, *u)
-	tearDown()
-}
-
 func TestAddUrl(t *testing.T) {
 	ctx := context.Background()
 	err := pg.InitNewStorage(ctx, lgr, &mc)

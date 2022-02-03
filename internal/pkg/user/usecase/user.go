@@ -9,12 +9,10 @@ import (
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/user"
 	"go.uber.org/zap"
-
-	"github.com/xfiendx4life/gb_go_backend1/storage"
 )
 
 type gres struct {
-	repo storage.Storage
+	repo user.Repository
 }
 
 func (g *gres) Validate(ctx context.Context, name, password string, z *zap.SugaredLogger) (bool, error) {
@@ -47,6 +45,6 @@ func (g *gres) Add(ctx context.Context, u *models.User, z *zap.SugaredLogger) er
 	return nil
 }
 
-func New(repo storage.Storage) user.UseCase {
+func New(repo user.Repository) user.UseCase {
 	return &gres{repo: repo}
 }

@@ -20,3 +20,11 @@ type Deliver interface {
 	Get(ectx echo.Context) (string, error)
 	List(ectx echo.Context) ([]models.Url, error)
 }
+
+type Repository interface {
+	AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger) error
+	GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error)
+	GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error)
+	// ! Here for a while but have to move it to repository pkg
+	AddRedirect(ctx context.Context, redirect *models.Redirects, z *zap.SugaredLogger) error
+}
