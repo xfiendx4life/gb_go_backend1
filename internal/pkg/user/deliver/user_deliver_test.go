@@ -17,7 +17,6 @@ import (
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/deliver"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/usecase"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -25,12 +24,12 @@ type mockStorage struct {
 	err error
 }
 
-func (mc *mockStorage) AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error {
+func (mc *mockStorage) AddUser(ctx context.Context, user *models.User) error {
 	user.Id = 1
 	return mc.err
 }
 
-func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error) {
+func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string) (*models.User, error) {
 	s := md5.Sum([]byte("correctpassword"))
 	password := hex.EncodeToString(s[:])
 	return &models.User{
@@ -55,7 +54,7 @@ func TestCreate(t *testing.T) {
 	resp := httptest.NewRecorder()
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	mc := mockStorage{}
-	uc := usecase.New(&mc)
+	uc := usecase.New(&mc, lgr)
 	del := deliver.New(uc, ttl, "secret", lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Create(c)
@@ -69,7 +68,7 @@ func TestCreateError(t *testing.T) {
 	resp := httptest.NewRecorder()
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	mc := mockStorage{}
-	uc := usecase.New(&mc)
+	uc := usecase.New(&mc, lgr)
 	del := deliver.New(uc, ttl, "secret", lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Create(c)
@@ -84,7 +83,7 @@ func TestLogin(t *testing.T) {
 	req := httptest.NewRequest("GET", "/user/login?"+q.Encode(), nil)
 	resp := httptest.NewRecorder()
 	mc := mockStorage{}
-	uc := usecase.New(&mc)
+	uc := usecase.New(&mc, lgr)
 	del := deliver.New(uc, ttl, "secret", lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Login(c)

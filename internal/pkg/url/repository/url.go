@@ -12,40 +12,41 @@ import (
 
 type PG struct {
 	store storage.Storage
+	z     *zap.SugaredLogger
 }
 
-func New(store storage.Storage) url.Repository {
-	return &PG{store: store}
+func New(store storage.Storage, z *zap.SugaredLogger) url.Repository {
+	return &PG{store: store, z: z}
 }
 
-func (pg *PG) AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger) error {
+func (pg *PG) AddUrl(ctx context.Context, url *models.Url) error {
 	select {
 	case <-ctx.Done():
-		z.Error("done with context")
+		pg.z.Error("done with context")
 		return fmt.Errorf("done with context")
 	default:
 		q := `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
 		row := pg.store.GetDbPool().QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId)
 		err := row.Scan(&url.Id)
-		z.Infof("Added url with id: %d", url.Id)
+		pg.z.Infof("Added url with id: %d", url.Id)
 		if err != nil {
-			z.Errorf("error while inserting url to db: %s", err)
+			pg.z.Errorf("error while inserting url to db: %s", err)
 			return fmt.Errorf("error while inserting url to db: %s", err)
 		}
 		return nil
 	}
 }
 
-func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error) {
+func (pg *PG) GetUrls(ctx context.Context, userID int) ([]models.Url, error) {
 	select {
 	case <-ctx.Done():
-		z.Error("done with context")
+		pg.z.Error("done with context")
 		return nil, fmt.Errorf("done with context")
 	default:
 		q := `SELECT id, raw, shortened, user_id FROM urls WHERE user_id = $1`
 		rows, err := pg.store.GetDbPool().Query(ctx, q, userID)
 		if err != nil {
-			z.Errorf("can't get urls: %s", err)
+			pg.z.Errorf("can't get urls: %s", err)
 			return nil, fmt.Errorf("can't get urls: %s", err)
 		}
 		defer rows.Close()
@@ -55,7 +56,7 @@ func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]
 			err := rows.Scan(&url.Id, &url.Raw, &url.Shortened, &url.UserId)
 			//	// &url.RedirectsNum.Month, &url.RedirectsNum.Week, &url.RedirectsNum.Today)
 			if err != nil {
-				z.Errorf("can't parse urls: %s", err)
+				pg.z.Errorf("can't parse urls: %s", err)
 				return nil, fmt.Errorf("can't parse urls: %s", err)
 			}
 			urls = append(urls, url)
@@ -64,33 +65,33 @@ func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]
 	}
 }
 
-func (pg *PG) GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error) {
+func (pg *PG) GetUrlByShortened(ctx context.Context, shortened string) (*models.Url, error) {
 	select {
 	case <-ctx.Done():
-		z.Error("done with context")
+		pg.z.Error("done with context")
 		return nil, fmt.Errorf("done with context")
 	default:
 		q := `SELECT id, raw, shortened, user_id FROM urls WHERE shortened=$1;`
 		u := models.Url{}
 		err := pg.store.GetDbPool().QueryRow(ctx, q, shortened).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId) ////, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
 		if err != nil {
-			z.Errorf("can't get url by shortened: %s", err)
+			pg.z.Errorf("can't get url by shortened: %s", err)
 			return nil, fmt.Errorf("can't get url by shortened: %s", err)
 		}
 		return &u, nil
 	}
 }
 
-func (pg *PG) AddRedirect(ctx context.Context, redirect *models.Redirects, z *zap.SugaredLogger) error {
+func (pg *PG) AddRedirect(ctx context.Context, redirect *models.Redirects) error {
 	select {
 	case <-ctx.Done():
-		z.Error("done with context")
+		pg.z.Error("done with context")
 		return fmt.Errorf("done with context")
 	default:
 		q := `INSERT INTO redirects (url_id, date_of_usage) VALUES ($1, $2) RETURNING id`
 		err := pg.store.GetDbPool().QueryRow(ctx, q, redirect.UrlId, redirect.Date).Scan(&redirect.Id)
 		if err != nil {
-			z.Errorf("can't add to database: %s", err)
+			pg.z.Errorf("can't add to database: %s", err)
 			return fmt.Errorf("can't add to database: %s", err)
 		}
 		return nil

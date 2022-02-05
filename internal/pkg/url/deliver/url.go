@@ -35,7 +35,7 @@ func (u *urlDeliver) Save(ectx echo.Context) error {
 		u.z.Errorf("can't parse json: %s", err)
 		return echo.ErrBadRequest
 	}
-	sh, err := u.usecase.Add(ectx.Request().Context(), temUrl.Raw, temUrl.UserId, u.z)
+	sh, err := u.usecase.Add(ectx.Request().Context(), temUrl.Raw, temUrl.UserId)
 	if err != nil {
 		u.z.Errorf("can't add url: %s", err)
 		return echo.ErrBadRequest
@@ -47,7 +47,7 @@ func (u *urlDeliver) Save(ectx echo.Context) error {
 
 func (u *urlDeliver) Get(ectx echo.Context) (string, error) {
 	shortened := ectx.Param("shortened")
-	url, err := u.usecase.Get(ectx.Request().Context(), shortened, u.z)
+	url, err := u.usecase.Get(ectx.Request().Context(), shortened)
 	if err != nil {
 		u.z.Errorf("Can't get url: %s", err)
 		return "", fmt.Errorf("can't get url: %s", err)
@@ -61,7 +61,7 @@ func (u *urlDeliver) List(ectx echo.Context) ([]models.Url, error) {
 		u.z.Errorf("can't parse id param to string %s", err)
 		return nil, fmt.Errorf("can't parse id param to string %s", err)
 	}
-	ms, err := u.usecase.List(ectx.Request().Context(), id, u.z)
+	ms, err := u.usecase.List(ectx.Request().Context(), id)
 	if err != nil {
 		u.z.Errorf("can't get list: %s", err)
 		return nil, fmt.Errorf("can't get list: %s", err)

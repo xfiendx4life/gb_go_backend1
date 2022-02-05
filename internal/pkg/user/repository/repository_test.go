@@ -62,20 +62,20 @@ func tearDown() {
 
 func TestAddUser(t *testing.T) {
 	ctx := context.Background()
-	repo := repository.New(pg)
+	repo := repository.New(pg, lgr)
 	u := models.User{
 		Name:     "TestAddUser",
 		Password: "03212345",
 		Email:    "somemail@fnd.ru",
 	}
-	err := repo.AddUser(ctx, &u, lgr)
+	err := repo.AddUser(ctx, &u)
 	assert.NoError(t, err)
 	tearDown()
 }
 
 func TestAddUserError(t *testing.T) {
 	ctx := context.Background()
-	repo := repository.New(pg)
+	repo := repository.New(pg, lgr)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	_ = pg.GetDbPool().QueryRow(ctx, q, "TestAddUserError", "7892345", "somemail@fnd.ru")
 	u := models.User{
@@ -83,14 +83,14 @@ func TestAddUserError(t *testing.T) {
 		Password: "2345",
 		Email:    "somemail@fnd.ru",
 	}
-	err := repo.AddUser(ctx, &u, lgr)
+	err := repo.AddUser(ctx, &u)
 	assert.Error(t, err)
 	tearDown()
 }
 
 func TestGetUser(t *testing.T) {
 	ctx := context.Background()
-	repo := repository.New(pg)
+	repo := repository.New(pg, lgr)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	expected := models.User{
 		Id:       1,
@@ -99,7 +99,7 @@ func TestGetUser(t *testing.T) {
 		Email:    "somemail@fnd.ru",
 	}
 	_ = pg.GetDbPool().QueryRow(ctx, q, expected.Name, expected.Password, expected.Email).Scan(&expected.Id)
-	u, err := repo.GetUserByLogin(ctx, "TestGetUser", lgr)
+	u, err := repo.GetUserByLogin(ctx, "TestGetUser")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, *u)
 	tearDown()
@@ -107,8 +107,8 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserError(t *testing.T) {
 	ctx := context.Background()
-	repo := repository.New(pg)
-	u, err := repo.GetUserByLogin(ctx, "TestGetUserError", lgr)
+	repo := repository.New(pg, lgr)
+	u, err := repo.GetUserByLogin(ctx, "TestGetUserError")
 	assert.NoError(t, err)
 	assert.Equal(t, models.User{}, *u)
 	tearDown()

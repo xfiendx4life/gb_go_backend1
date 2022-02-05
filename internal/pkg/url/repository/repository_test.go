@@ -63,7 +63,7 @@ func tearDown() {
 
 func TestAddUrl(t *testing.T) {
 	ctx := context.Background()
-	repo := repository.New(pg)
+	repo := repository.New(pg, lgr)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	_ = pg.GetDbPool().QueryRow(ctx, q, "TestAddUrl", "2300045", "somemail@fnd.ru")
 	url := models.Url{
@@ -71,7 +71,7 @@ func TestAddUrl(t *testing.T) {
 		Shortened: "shorturl.at/huNP1",
 		UserId:    1,
 	}
-	err := repo.AddUrl(ctx, &url, lgr)
+	err := repo.AddUrl(ctx, &url)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, url.Id)
 	tearDown()
@@ -79,7 +79,7 @@ func TestAddUrl(t *testing.T) {
 
 func TestGetUrls(t *testing.T) {
 	ctx := context.Background()
-	repo := repository.New(pg)
+	repo := repository.New(pg, lgr)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	var userId int
 	err := pg.GetDbPool().QueryRow(ctx, q, "TestGetUrls", "TestGetUrl", "somemail@fnd.ru").Scan(&userId)
@@ -94,7 +94,7 @@ func TestGetUrls(t *testing.T) {
 		err = pg.GetDbPool().QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId).Scan(&url.Id)
 		assert.NoError(t, err)
 	}
-	urls, err := repo.GetUrls(ctx, userId, lgr)
+	urls, err := repo.GetUrls(ctx, userId)
 	assert.NoError(t, err)
 	assert.Equal(t, 10, len(urls))
 	assert.Equal(t, "0", string(urls[0].Raw[len(urls[0].Raw)-1]))
@@ -103,7 +103,7 @@ func TestGetUrls(t *testing.T) {
 
 func TestGetUrlByShortened(t *testing.T) {
 	ctx := context.Background()
-	repo := repository.New(pg)
+	repo := repository.New(pg, lgr)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	var userId int
 	err := pg.GetDbPool().QueryRow(ctx, q, "TestGetUrlBySH", "TestGetUrlBySH", "somemail@fnd.ru").Scan(&userId)
@@ -116,7 +116,7 @@ func TestGetUrlByShortened(t *testing.T) {
 	q = `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
 	err = pg.GetDbPool().QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId).Scan(&url.Id)
 	assert.NoError(t, err)
-	res, err := repo.GetUrlByShortened(ctx, "TestGetUrlByShortened", lgr)
+	res, err := repo.GetUrlByShortened(ctx, "TestGetUrlByShortened")
 	require.NoError(t, err)
 	assert.Equal(t, url, *res)
 	tearDown()
@@ -124,7 +124,7 @@ func TestGetUrlByShortened(t *testing.T) {
 
 func TestAddRedirect(t *testing.T) {
 	ctx := context.Background()
-	repo := repository.New(pg)
+	repo := repository.New(pg, lgr)
 	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
 	var userId int
 	err := pg.GetDbPool().QueryRow(ctx, q, "TestAddRedirect", "TestAddRedirect", "somemail@fnd.ru").Scan(&userId)
@@ -142,7 +142,7 @@ func TestAddRedirect(t *testing.T) {
 		UrlId: url.Id,
 		Date:  time.Now(),
 	}
-	err = repo.AddRedirect(ctx, &rdr, lgr)
+	err = repo.AddRedirect(ctx, &rdr)
 	assert.NoError(t, err)
 	assert.NotEqual(t, 0, rdr.Id)
 	tearDown()

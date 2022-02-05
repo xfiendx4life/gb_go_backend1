@@ -13,16 +13,17 @@ import (
 
 type gres struct {
 	repo user.Repository
+	z    *zap.SugaredLogger
 }
 
-func (g *gres) Validate(ctx context.Context, name, password string, z *zap.SugaredLogger) (bool, error) {
-	u, err := g.repo.GetUserByLogin(ctx, name, z)
+func (g *gres) Validate(ctx context.Context, name, password string) (bool, error) {
+	u, err := g.repo.GetUserByLogin(ctx, name)
 	if err != nil {
-		z.Errorf("can't validate user: %s", err)
+		g.z.Errorf("can't validate user: %s", err)
 		return false, fmt.Errorf("can't validate user: %s", err)
 	}
 	if u.Password != hashPassword(password) {
-		z.Info("No such user or wrong password")
+		g.z.Info("No such user or wrong password")
 		return false, nil
 	}
 	return true, nil
@@ -33,18 +34,18 @@ func hashPassword(rawPass string) string {
 	return hex.EncodeToString(s[:])
 }
 
-func (g *gres) Add(ctx context.Context, u *models.User, z *zap.SugaredLogger) error {
-	z.Infof("created new user %v", *u)
+func (g *gres) Add(ctx context.Context, u *models.User) error {
+	g.z.Infof("created new user %v", *u)
 	u.Password = hashPassword(u.Password)
-	err := g.repo.AddUser(ctx, u, z)
+	err := g.repo.AddUser(ctx, u)
 	if err != nil {
-		z.Errorf("can't add new user to storage: %s", err)
+		g.z.Errorf("can't add new user to storage: %s", err)
 		return fmt.Errorf("can't add new user to storage: %s", err)
 	}
-	z.Infof("user %v added to storage", u)
+	g.z.Infof("user %v added to storage", u)
 	return nil
 }
 
-func New(repo user.Repository) user.UseCase {
-	return &gres{repo: repo}
+func New(repo user.Repository, z *zap.SugaredLogger) user.UseCase {
+	return &gres{repo: repo, z: z}
 }

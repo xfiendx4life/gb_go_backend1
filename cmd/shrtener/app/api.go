@@ -54,7 +54,7 @@ func App(z *zap.SugaredLogger) {
 	if err != nil {
 		log.Fatalf("can't connect to storage")
 	}
-	user := userCase.New(userRepo.New(store))
+	user := userCase.New(userRepo.New(store, z), z)
 	ttl := conf.GetConfAuth().GetTtl()
 	dur := time.Duration(ttl) * time.Minute
 	z.Infof("expiry time %v", dur)
@@ -63,7 +63,7 @@ func App(z *zap.SugaredLogger) {
 		time.Now().Add(dur).Unix(),
 		conf.GetConfAuth().GetSecretKey(),
 		z)
-	url := urlCase.New(urlRepo.New(store))
+	url := urlCase.New(urlRepo.New(store, z), z)
 	urlDeliver := urlDel.New(url, z)
 	server.POST("/user/create", userDeliver.Create)
 	server.GET("/user/login", userDeliver.Login)

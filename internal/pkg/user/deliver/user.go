@@ -41,7 +41,7 @@ func (e *EchoDeliver) Login(ectx echo.Context) error {
 		e.z.Errorf("Empty login or password")
 		return echo.ErrUnauthorized
 	}
-	if ok, err := e.User.Validate(ectx.Request().Context(), name, password, e.z); err != nil || !ok {
+	if ok, err := e.User.Validate(ectx.Request().Context(), name, password); err != nil || !ok {
 		e.z.Errorf("can't validate password %s for user %s -> %s ", name, password, err)
 		return echo.ErrUnauthorized
 	}
@@ -69,7 +69,7 @@ func (e *EchoDeliver) Create(ectx echo.Context) (err error) {
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
-	if err = e.User.Add(ectx.Request().Context(), u, e.z); err != nil {
+	if err = e.User.Add(ectx.Request().Context(), u); err != nil {
 		return echo.ErrInternalServerError
 	}
 	return ectx.JSON(http.StatusCreated, u)

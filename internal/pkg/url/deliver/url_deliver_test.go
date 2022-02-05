@@ -14,12 +14,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/xfiendx4life/gb_go_backend1/internal/config"
 	"github.com/xfiendx4life/gb_go_backend1/internal/logger"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/deliver"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/usecase"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -27,35 +25,19 @@ type mockStorage struct {
 	err error
 }
 
-func (mc *mockStorage) InitNewStorage(ctx context.Context, z *zap.SugaredLogger, config config.Storage) error {
-	return nil
-}
-
-func (mc *mockStorage) AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error {
-	user.Id = 1
-	return mc.err
-}
-
-func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error) {
-	return &models.User{
-		Name:     "testname",
-		Password: "correctPassword",
-	}, mc.err
-}
-
-func (mc *mockStorage) AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger) error {
+func (mc *mockStorage) AddUrl(ctx context.Context, url *models.Url) error {
 	url.Id = 1
 	return mc.err
 }
 
-func (mc *mockStorage) GetUrl(ctx context.Context, id int, z *zap.SugaredLogger) (*models.Url, error) {
+func (mc *mockStorage) GetUrl(ctx context.Context, id int) (*models.Url, error) {
 	return &models.Url{
 		Raw:       "RawTestUrl",
 		Shortened: "shortenedTestUrl",
 	}, mc.err
 }
 
-func (mc *mockStorage) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error) {
+func (mc *mockStorage) GetUrls(ctx context.Context, userID int) ([]models.Url, error) {
 	return []models.Url{
 		{
 			UserId:    1,
@@ -75,19 +57,15 @@ func (mc *mockStorage) GetUrls(ctx context.Context, userID int, z *zap.SugaredLo
 	}, nil
 }
 
-func (mc *mockStorage) GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error) {
+func (mc *mockStorage) GetUrlByShortened(ctx context.Context, shortened string) (*models.Url, error) {
 	return &models.Url{
 		Raw:       "RawTestUrl",
 		Shortened: "shortenedTestUrl",
 	}, mc.err
 }
 
-func (mc *mockStorage) AddRedirect(ctx context.Context, r *models.Redirects, z *zap.SugaredLogger) error {
+func (mc *mockStorage) AddRedirect(ctx context.Context, r *models.Redirects) error {
 	return nil
-}
-
-func (mc *mockStorage) GetRedirects(ctx context.Context, urlId int, z *zap.SugaredLogger) ([]models.Redirects, error) {
-	return []models.Redirects{}, nil
 }
 
 var (
@@ -104,7 +82,7 @@ func TestAddUrl(t *testing.T) {
 	resp := httptest.NewRecorder()
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	mc := mockStorage{}
-	uc := usecase.New(&mc)
+	uc := usecase.New(&mc, lgr)
 	del := deliver.New(uc, lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Save(c)
@@ -121,7 +99,7 @@ func TestAddUrlErr(t *testing.T) {
 	resp := httptest.NewRecorder()
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	mc := mockStorage{err: fmt.Errorf("Some error")}
-	uc := usecase.New(&mc)
+	uc := usecase.New(&mc, lgr)
 	del := deliver.New(uc, lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Save(c)
@@ -135,7 +113,7 @@ func TestAddUrlJsonErr(t *testing.T) {
 	resp := httptest.NewRecorder()
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	mc := mockStorage{err: fmt.Errorf("Some error")}
-	uc := usecase.New(&mc)
+	uc := usecase.New(&mc, lgr)
 	del := deliver.New(uc, lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Save(c)
@@ -151,7 +129,7 @@ func TestGetUrl(t *testing.T) {
 	ectx.SetParamNames("shortened")
 	ectx.SetParamValues("shortenedTestUrl")
 	mc := &mockStorage{}
-	uc := usecase.New(mc)
+	uc := usecase.New(mc, lgr)
 	del := deliver.New(uc, lgr)
 	raw, err := del.Get(ectx)
 	assert.NoError(t, err)
@@ -165,7 +143,7 @@ func TestGetList(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ectx := echo.New().NewContext(req, resp)
 	mc := &mockStorage{}
-	uc := usecase.New(mc)
+	uc := usecase.New(mc, lgr)
 	del := deliver.New(uc, lgr)
 	urls, err := del.List(ectx)
 	assert.NoError(t, err)

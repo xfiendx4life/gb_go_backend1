@@ -14,7 +14,6 @@ import (
 	"github.com/xfiendx4life/gb_go_backend1/internal/logger"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/user/usecase"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -27,12 +26,12 @@ type mockStorage struct {
 	err error
 }
 
-func (mc *mockStorage) AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error {
+func (mc *mockStorage) AddUser(ctx context.Context, user *models.User) error {
 	user.Id = 1
 	return mc.err
 }
 
-func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error) {
+func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string) (*models.User, error) {
 	s := md5.Sum([]byte("correctPassword"))
 	return &models.User{
 		Name:     "testname",
@@ -41,31 +40,31 @@ func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string, z *zap.
 }
 
 func TestValidateCorrect(t *testing.T) {
-	uc := usecase.New(&mockStorage{})
-	res, err := uc.Validate(ctx, "testname", "correctPassword", lgr)
+	uc := usecase.New(&mockStorage{}, lgr)
+	res, err := uc.Validate(ctx, "testname", "correctPassword")
 	assert.NoError(t, err)
 	assert.True(t, res)
 }
 
 func TestValidateIncorrect(t *testing.T) {
-	uc := usecase.New(&mockStorage{})
-	res, err := uc.Validate(ctx, "testname", "incorrectPassword", lgr)
+	uc := usecase.New(&mockStorage{}, lgr)
+	res, err := uc.Validate(ctx, "testname", "incorrectPassword")
 	assert.NoError(t, err)
 	assert.False(t, res)
 }
 
 func TestValidateError(t *testing.T) {
 	st := &mockStorage{err: errors.New("some error")}
-	uc := usecase.New(st)
-	res, err := uc.Validate(ctx, "testname", "incorrectPassword", lgr)
+	uc := usecase.New(st, lgr)
+	res, err := uc.Validate(ctx, "testname", "incorrectPassword")
 	assert.Error(t, err)
 	assert.False(t, res)
 }
 
 func TestAddUser(t *testing.T) {
-	uc := usecase.New(&mockStorage{})
+	uc := usecase.New(&mockStorage{}, lgr)
 	u := &models.User{Name: "testname", Password: "password", Email: "email"}
-	err := uc.Add(ctx, u, lgr)
+	err := uc.Add(ctx, u)
 	assert.NoError(t, err)
 	assert.Equal(t, models.User{
 		Id:       1,
@@ -76,8 +75,8 @@ func TestAddUser(t *testing.T) {
 
 func TestAddUserError(t *testing.T) {
 	st := &mockStorage{err: errors.New("some error")}
-	uc := usecase.New(st)
+	uc := usecase.New(st, lgr)
 	u := &models.User{Name: "testname", Password: "password", Email: "email"}
-	err := uc.Add(ctx, u, lgr)
+	err := uc.Add(ctx, u)
 	assert.Error(t, err)
 }
