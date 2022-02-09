@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"time"
 
 	crypto_rand "crypto/rand"
 	"encoding/binary"
@@ -11,13 +10,15 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/redirects"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url"
 	"go.uber.org/zap"
 )
 
 type gres struct {
-	store url.Repository
-	z     *zap.SugaredLogger
+	store    url.Repository
+	z        *zap.SugaredLogger
+	redirect redirects.UseCase
 }
 
 func getSeedNumber() (int64, error) {
@@ -51,8 +52,8 @@ func NewUrl(raw string, userId int, z *zap.SugaredLogger) *models.Url {
 	}
 }
 
-func New(st url.Repository, z *zap.SugaredLogger) url.UseCase {
-	return &gres{store: st, z: z}
+func New(st url.Repository, rdrUsecase redirects.UseCase, z *zap.SugaredLogger) url.UseCase {
+	return &gres{store: st, z: z, redirect: rdrUsecase}
 }
 
 func (g *gres) Add(ctx context.Context, raw string, userId int) (shortened string, err error) {
@@ -66,27 +67,13 @@ func (g *gres) Add(ctx context.Context, raw string, userId int) (shortened strin
 	return url.Shortened, nil
 }
 
-// TODO: test this
-// ? Maybe move it to Redirects usecase
-func (g *gres) AddStats(ctx context.Context, urlID int) error {
-	rdr := models.Redirects{
-		UrlId: urlID,
-		Date:  time.Now(),
-	}
-	err := g.store.AddRedirect(ctx, &rdr)
-	if err != nil {
-		g.z.Errorf("can't add stats of redirect: %s", err)
-		return fmt.Errorf("can't add stats of redirect: %s", err)
-	}
-	return nil
-}
-
 func (g *gres) Get(ctx context.Context, shortened string) (raw string, err error) {
 	url, err := g.store.GetUrlByShortened(ctx, shortened)
 	if err != nil {
 		return "", echo.ErrBadRequest
 	}
-	err = g.AddStats(ctx, url.Id)
+	// ! Test it very much
+	err = g.redirect.Add(ctx, url.Id)
 	if err != nil {
 		g.z.Errorf("can't add stats to storage %s", err)
 		return "", echo.ErrInternalServerError

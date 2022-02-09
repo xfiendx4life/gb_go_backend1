@@ -171,17 +171,17 @@ paths:
         '400':
           description: wrong parameters
           content: {}
-  /redirects:
+  /redirects/{shortentenedUrl}:
     get:
       operationId: getAllRedirectsForUrl
-      description: get all redirects for url with certain id
+      description: get all redirects for url with certain shortened url
       parameters:
-      - name: id
-        description: id of url
-        in: query
+      - name: shortenedUrl
+        description: shortened url
+        in: path
         schema:
-          type: integer
-          format: int64
+          type: string
+        required: true
       responses:
         '200':
           description: successful request

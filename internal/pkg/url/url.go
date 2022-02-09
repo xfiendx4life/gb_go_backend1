@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/storage"
 )
 
 type UseCase interface {
@@ -24,6 +25,5 @@ type Repository interface {
 	AddUrl(ctx context.Context, url *models.Url) error
 	GetUrls(ctx context.Context, userID int) ([]models.Url, error)
 	GetUrlByShortened(ctx context.Context, shortened string) (*models.Url, error)
-	// ! Here for a while but have to move it to repository pkg
-	AddRedirect(ctx context.Context, redirect *models.Redirects) error
+	GetStorage() storage.Storage
 }

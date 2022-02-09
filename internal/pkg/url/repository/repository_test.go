@@ -121,29 +121,3 @@ func TestGetUrlByShortened(t *testing.T) {
 	assert.Equal(t, url, *res)
 	tearDown()
 }
-
-func TestAddRedirect(t *testing.T) {
-	ctx := context.Background()
-	repo := repository.New(pg, lgr)
-	q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
-	var userId int
-	err := pg.GetDbPool().QueryRow(ctx, q, "TestAddRedirect", "TestAddRedirect", "somemail@fnd.ru").Scan(&userId)
-	assert.NoError(t, err)
-	url := models.Url{
-		Raw:       "https://google.com",
-		Shortened: "TestAddRedirect",
-		UserId:    userId,
-	}
-	q = `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
-	err = pg.GetDbPool().QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId).Scan(&url.Id)
-	assert.NoError(t, err)
-
-	rdr := models.Redirects{
-		UrlId: url.Id,
-		Date:  time.Now(),
-	}
-	err = repo.AddRedirect(ctx, &rdr)
-	assert.NoError(t, err)
-	assert.NotEqual(t, 0, rdr.Id)
-	tearDown()
-}

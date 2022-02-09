@@ -12,6 +12,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/xfiendx4life/gb_go_backend1/internal/api/middlewares"
 	"github.com/xfiendx4life/gb_go_backend1/internal/config"
+	rdrRepo "github.com/xfiendx4life/gb_go_backend1/internal/pkg/redirects/repository"
+	rdrUsecase "github.com/xfiendx4life/gb_go_backend1/internal/pkg/redirects/usecase"
 	urlDel "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/deliver"
 	urlRepo "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/repository"
 	urlCase "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/usecase"
@@ -47,13 +49,15 @@ func App(z *zap.SugaredLogger) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	server := echo.New()
-
 	server.Use(middleware.Recover())
+
+	// * Storage init
 	store := storage.New()
 	err = store.InitNewStorage(ctx, z, conf.GetConfStorage())
 	if err != nil {
 		log.Fatalf("can't connect to storage")
 	}
+	// * User init
 	user := userCase.New(userRepo.New(store, z), z)
 	ttl := conf.GetConfAuth().GetTtl()
 	dur := time.Duration(ttl) * time.Minute
@@ -63,7 +67,11 @@ func App(z *zap.SugaredLogger) {
 		time.Now().Add(dur).Unix(),
 		conf.GetConfAuth().GetSecretKey(),
 		z)
-	url := urlCase.New(urlRepo.New(store, z), z)
+	// *Redirect init
+	rdr := rdrUsecase.New(rdrRepo.New(store, z), z)
+
+	// *URL init
+	url := urlCase.New(urlRepo.New(store, z), rdr, z)
 	urlDeliver := urlDel.New(url, z)
 	server.POST("/user/create", userDeliver.Create)
 	server.GET("/user/login", userDeliver.Login)

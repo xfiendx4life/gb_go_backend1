@@ -11,13 +11,16 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/xfiendx4life/gb_go_backend1/internal/logger"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
+	rdrUse "github.com/xfiendx4life/gb_go_backend1/internal/pkg/redirects/usecase"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/deliver"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/usecase"
+	"github.com/xfiendx4life/gb_go_backend1/storage"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -57,6 +60,10 @@ func (mc *mockStorage) GetUrls(ctx context.Context, userID int) ([]models.Url, e
 	}, nil
 }
 
+func (m *mockStorage) GetStorage() storage.Storage {
+	return storage.New() // ! shit happens here because we shouldn't return real storage
+}
+
 func (mc *mockStorage) GetUrlByShortened(ctx context.Context, shortened string) (*models.Url, error) {
 	return &models.Url{
 		Raw:       "RawTestUrl",
@@ -64,13 +71,30 @@ func (mc *mockStorage) GetUrlByShortened(ctx context.Context, shortened string) 
 	}, mc.err
 }
 
-func (mc *mockStorage) AddRedirect(ctx context.Context, r *models.Redirects) error {
-	return nil
+type mockRdrStorage struct {
+	err error
+}
+
+func (mr *mockRdrStorage) AddRedirect(ctx context.Context, redirect *models.Redirects) error {
+	return mr.err
+}
+
+func (mr *mockRdrStorage) GetRedirects(ctx context.Context, shortened string) ([]models.Redirects, error) {
+	if mr.err != nil {
+		return nil, mr.err
+	}
+	return []models.Redirects{
+		{Id: 1, UrlId: 1, Date: time.Now().Add(time.Duration(time.Hour * (-72)))},
+		{Id: 2, UrlId: 1, Date: time.Now().Add(time.Duration(time.Hour * (-2)))},
+		{Id: 3, UrlId: 1, Date: time.Now().Add(time.Duration(time.Hour * (-179)))},
+		{Id: 4, UrlId: 1, Date: time.Now().Add(time.Duration(time.Hour * (-1)))},
+	}, nil
 }
 
 var (
 	lgr = logger.InitLogger(zapcore.DebugLevel, "")
 	// ctx = context.Background()
+	rdrUc = rdrUse.New(&mockRdrStorage{}, lgr)
 )
 
 func TestAddUrl(t *testing.T) {
@@ -82,7 +106,7 @@ func TestAddUrl(t *testing.T) {
 	resp := httptest.NewRecorder()
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	mc := mockStorage{}
-	uc := usecase.New(&mc, lgr)
+	uc := usecase.New(&mc, rdrUc, lgr)
 	del := deliver.New(uc, lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Save(c)
@@ -99,7 +123,7 @@ func TestAddUrlErr(t *testing.T) {
 	resp := httptest.NewRecorder()
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	mc := mockStorage{err: fmt.Errorf("Some error")}
-	uc := usecase.New(&mc, lgr)
+	uc := usecase.New(&mc, rdrUc, lgr)
 	del := deliver.New(uc, lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Save(c)
@@ -113,7 +137,7 @@ func TestAddUrlJsonErr(t *testing.T) {
 	resp := httptest.NewRecorder()
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	mc := mockStorage{err: fmt.Errorf("Some error")}
-	uc := usecase.New(&mc, lgr)
+	uc := usecase.New(&mc, rdrUc, lgr)
 	del := deliver.New(uc, lgr)
 	c := echo.New().NewContext(req, resp)
 	err := del.Save(c)
@@ -129,7 +153,7 @@ func TestGetUrl(t *testing.T) {
 	ectx.SetParamNames("shortened")
 	ectx.SetParamValues("shortenedTestUrl")
 	mc := &mockStorage{}
-	uc := usecase.New(mc, lgr)
+	uc := usecase.New(mc, rdrUc, lgr)
 	del := deliver.New(uc, lgr)
 	raw, err := del.Get(ectx)
 	assert.NoError(t, err)
@@ -143,7 +167,7 @@ func TestGetList(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ectx := echo.New().NewContext(req, resp)
 	mc := &mockStorage{}
-	uc := usecase.New(mc, lgr)
+	uc := usecase.New(mc, rdrUc, lgr)
 	del := deliver.New(uc, lgr)
 	urls, err := del.List(ectx)
 	assert.NoError(t, err)

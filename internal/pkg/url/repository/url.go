@@ -82,18 +82,6 @@ func (pg *PG) GetUrlByShortened(ctx context.Context, shortened string) (*models.
 	}
 }
 
-func (pg *PG) AddRedirect(ctx context.Context, redirect *models.Redirects) error {
-	select {
-	case <-ctx.Done():
-		pg.z.Error("done with context")
-		return fmt.Errorf("done with context")
-	default:
-		q := `INSERT INTO redirects (url_id, date_of_usage) VALUES ($1, $2) RETURNING id`
-		err := pg.store.GetDbPool().QueryRow(ctx, q, redirect.UrlId, redirect.Date).Scan(&redirect.Id)
-		if err != nil {
-			pg.z.Errorf("can't add to database: %s", err)
-			return fmt.Errorf("can't add to database: %s", err)
-		}
-		return nil
-	}
+func (pg *PG) GetStorage() storage.Storage {
+	return pg.store
 }
