@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/url"
 	"go.uber.org/zap"
 )
@@ -45,26 +44,27 @@ func (u *urlDeliver) Save(ectx echo.Context) error {
 	}{Shortened: sh})
 }
 
-func (u *urlDeliver) Get(ectx echo.Context) (string, error) {
+func (u *urlDeliver) Get(ectx echo.Context) error {
 	shortened := ectx.Param("shortened")
 	url, err := u.usecase.Get(ectx.Request().Context(), shortened)
 	if err != nil {
 		u.z.Errorf("Can't get url: %s", err)
-		return "", fmt.Errorf("can't get url: %s", err)
+		return fmt.Errorf("can't get url: %s", err)
 	}
-	return url, nil
+	return ectx.Redirect(http.StatusSeeOther, url)
 }
 
-func (u *urlDeliver) List(ectx echo.Context) ([]models.Url, error) {
+func (u *urlDeliver) List(ectx echo.Context) error {
 	id, err := strconv.Atoi(ectx.QueryParam("id"))
+	u.z.Infof("listing all the urls for user: %d", id)
 	if err != nil {
 		u.z.Errorf("can't parse id param to string %s", err)
-		return nil, fmt.Errorf("can't parse id param to string %s", err)
+		return fmt.Errorf("can't parse id param to string %s", err)
 	}
 	ms, err := u.usecase.List(ectx.Request().Context(), id)
 	if err != nil {
 		u.z.Errorf("can't get list: %s", err)
-		return nil, fmt.Errorf("can't get list: %s", err)
+		return fmt.Errorf("can't get list: %s", err)
 	}
-	return ms, nil
+	return ectx.JSON(http.StatusOK, ms)
 }

@@ -17,8 +17,8 @@ type UseCase interface {
 
 type Deliver interface {
 	Save(ectx echo.Context) error
-	Get(ectx echo.Context) (string, error) // ! Can't retrun anything but error 
-	List(ectx echo.Context) ([]models.Url, error)
+	Get(ectx echo.Context) error // ! Can't retrun anything but error 
+	List(ectx echo.Context) error
 }
 
 type Repository interface {

@@ -2,6 +2,7 @@ package deliver_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -152,9 +153,9 @@ func TestGetUrl(t *testing.T) {
 	mc := &mockStorage{}
 	uc := usecase.New(mc, rdrUc, lgr)
 	del := deliver.New(uc, lgr)
-	raw, err := del.Get(ectx)
+	err := del.Get(ectx)
 	assert.NoError(t, err)
-	assert.Equal(t, "RawTestUrl", raw)
+	assert.Equal(t, "RawTestUrl", resp.Result().Header.Get("Location"))
 }
 
 func TestGetList(t *testing.T) {
@@ -166,7 +167,7 @@ func TestGetList(t *testing.T) {
 	mc := &mockStorage{}
 	uc := usecase.New(mc, rdrUc, lgr)
 	del := deliver.New(uc, lgr)
-	urls, err := del.List(ectx)
+	err := del.List(ectx)
 	assert.NoError(t, err)
 	targetRes := []models.Url{
 		{
@@ -185,5 +186,7 @@ func TestGetList(t *testing.T) {
 			Shortened: "shortenedTestUrl2",
 		},
 	}
-	assert.Equal(t, targetRes, urls)
+	res := make([]models.Url, 0)
+	json.NewDecoder(strings.NewReader(resp.Body.String())).Decode(&res)
+	assert.Equal(t, targetRes, res)
 }
