@@ -8,12 +8,12 @@ import (
 	"go.uber.org/zap"
 )
 
-type del struct {
+type Del struct {
 	use redirects.UseCase
-	z   zap.SugaredLogger
+	z   *zap.SugaredLogger
 }
 
-func (d *del) GetSummary(ectx echo.Context) error {
+func (d *Del) GetSummary(ectx echo.Context) error {
 	shortened := ectx.Param("shortened")
 	summary, err := d.use.Get(ectx.Request().Context(), shortened)
 	if err != nil {
@@ -21,4 +21,8 @@ func (d *del) GetSummary(ectx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 	return ectx.JSON(http.StatusOK, summary)
+}
+
+func New(use redirects.UseCase, z *zap.SugaredLogger) redirects.Deliver {
+	return &Del{use: use, z: z}
 }
