@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/xfiendx4life/gb_go_backend1/internal/logger"
 	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	rdrUse "github.com/xfiendx4life/gb_go_backend1/internal/pkg/redirects/usecase"
@@ -92,7 +93,19 @@ func TestAddStorageError(t *testing.T) {
 	assert.Empty(t, short)
 }
 
-func TestNewUser(t *testing.T) {
+func isClean(s string) bool {
+	et := "!*'();:@&=+$,/\\?%#[]"
+	for _, chr := range s {
+		for _, sym := range et {
+			if sym == chr {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func TestNewUrl(t *testing.T) {
 	set := make(map[string]struct{})
 	var err error
 	var i int
@@ -103,6 +116,7 @@ func TestNewUser(t *testing.T) {
 			err = fmt.Errorf("already exists")
 			break
 		}
+		require.True(t, isClean(u.Shortened), fmt.Errorf("not clean %s", u.Shortened))
 		set[u.Shortened] = struct{}{}
 	}
 	assert.NoError(t, err, fmt.Sprintf("Url: %s, i: %d", u.Shortened, i))

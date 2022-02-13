@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/xfiendx4life/gb_go_backend1/internal/api/middlewares"
 	"github.com/xfiendx4life/gb_go_backend1/internal/config"
+	rdrDel "github.com/xfiendx4life/gb_go_backend1/internal/pkg/redirects/deliver"
 	rdrRepo "github.com/xfiendx4life/gb_go_backend1/internal/pkg/redirects/repository"
 	rdrUsecase "github.com/xfiendx4life/gb_go_backend1/internal/pkg/redirects/usecase"
 	urlDel "github.com/xfiendx4life/gb_go_backend1/internal/pkg/url/deliver"
@@ -69,13 +70,18 @@ func App(z *zap.SugaredLogger) {
 		z)
 	// *Redirect init
 	rdr := rdrUsecase.New(rdrRepo.New(store, z), z)
+	rDel := rdrDel.New(rdr, z)
 
 	// *URL init
 	url := urlCase.New(urlRepo.New(store, z), rdr, z)
 	urlDeliver := urlDel.New(url, z)
+
+	// * Handlers
 	server.POST("/user/create", userDeliver.Create)
 	server.GET("/user/login", userDeliver.Login)
 	server.POST("/url", urlDeliver.Save, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
+	server.GET("/:shortened", urlDeliver.Get)
+	server.GET("redirects/:shortened", rDel.GetSummary, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
 	go func() {
 		z.Fatal(server.Start(port))
 	}()

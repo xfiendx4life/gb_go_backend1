@@ -30,6 +30,16 @@ func getSeedNumber() (int64, error) {
 	return int64(binary.LittleEndian.Uint64(b[:])), nil
 }
 
+func check_chr(s string, chr rune) bool {
+	et := "!*'();:@&=+$,/\\?%#[]"
+	for _, ch := range et {
+		if chr == ch {
+			return true
+		}
+	}
+	return false
+}
+
 // takes []byte of raw url and then performes random
 // permutation and takes 15 or less symbols for short link
 func NewUrl(raw string, userId int, z *zap.SugaredLogger) *models.Url {
@@ -45,9 +55,16 @@ func NewUrl(raw string, userId int, z *zap.SugaredLogger) *models.Url {
 		bts[i], bts[toChange] = bts[toChange], bts[i]
 		bts[i] -= byte(math_rand.Intn(10))
 	}
+	dirty := string(bts[:i])
+	clean := ""
+	for _, char := range dirty {
+		if !check_chr(dirty, char) {
+			clean += string(char)
+		}
+	}
 	return &models.Url{
 		Raw:       raw,
-		Shortened: string(bts[:i]),
+		Shortened: clean,
 		UserId:    userId,
 	}
 }

@@ -46,6 +46,7 @@ func (u *urlDeliver) Save(ectx echo.Context) error {
 
 func (u *urlDeliver) Get(ectx echo.Context) error {
 	shortened := ectx.Param("shortened")
+	u.z.Infof("get short url %s", shortened)
 	url, err := u.usecase.Get(ectx.Request().Context(), shortened)
 	if err != nil {
 		u.z.Errorf("Can't get url: %s", err)
