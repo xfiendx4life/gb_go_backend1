@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  postgres:
+    container_name: postgres_compose
+    image: postgres:14.1
+    environment:
+      POSTGRES_PASSWORD: 123456
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./storage/docker_runner/init-db:/docker-entrypoint-initdb.d
+      - ./storage/docker_runner/_data:/var/lib/postgresql/data
+    healthcheck:
+      test: psql -U xfiendx4life -d shortener --command='SELECT * from users'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+  
+  shrtener:
+    container_name: shrtener
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    links:
+      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+networks:
+      new:

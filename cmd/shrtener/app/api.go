@@ -24,7 +24,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const port = ":8000"
+const port = ":8080"
 
 func App(z *zap.SugaredLogger) {
 	conf := config.New()
@@ -76,10 +76,10 @@ func App(z *zap.SugaredLogger) {
 	server.POST("/user/create", userDeliver.Create)
 	server.GET("/user/login", userDeliver.Login)
 	server.POST("/url", urlDeliver.Save, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
-
 	go func() {
-		log.Fatal(server.Start(port))
+		z.Fatal(server.Start(port))
 	}()
+
 	<-sigs
 	z.Errorf(("done with syscall"))
 	// ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.GetTimeOut().Seconds())) // TODO hange for context with Timeout
