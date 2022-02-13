@@ -94,7 +94,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                type: object
+                properties:
+                  token:
+                    type: string
         '400':
           description: wrong login or password 
           content: {}
@@ -103,18 +106,29 @@ paths:
       operationId: shortenUrl
       description: post url to shorten it
       parameters:
-      - name: rawUrl
+      - name: rawurl
         in: query
-        schema:
-          type: string
-          format: url
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rawurl:
+                  type: string
+                  format: url
+                userid:
+                  type: integer
       responses:
         '200':
           description: successful creation of url object
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Url"
+                type: object
+                properties:
+                  shortened:
+                    type: string
+                    format: url
         '400':
           description: something went wrong
           content: {}
@@ -157,17 +171,17 @@ paths:
         '400':
           description: wrong parameters
           content: {}
-  /redirects:
+  /redirects/{shortentenedUrl}:
     get:
       operationId: getAllRedirectsForUrl
-      description: get all redirects for url with certain id
+      description: get all redirects for url with certain shortened url
       parameters:
-      - name: id
-        description: id of url
-        in: query
+      - name: shortenedUrl
+        description: shortened url
+        in: path
         schema:
-          type: integer
-          format: int64
+          type: string
+        required: true
       responses:
         '200':
           description: successful request

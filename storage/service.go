@@ -2,14 +2,15 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
-	"os"
-	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/xfiendx4life/gb_go_backend1/pkg/models"
+	"github.com/xfiendx4life/gb_go_backend1/internal/config"
+	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"go.uber.org/zap"
 )
 
@@ -18,20 +19,10 @@ func New() Storage {
 }
 
 // TODO: change this function go get all configuration from config object
-func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger) (err error) {
+func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger, config config.Storage) (err error) {
 	// add cofiguration
-	Maxc, err := strconv.Atoi(os.Getenv("MAX_CONS"))
-	if err != nil {
-		z.Errorf("wrong format of env var: %s", err)
-		return fmt.Errorf("wrong format of env var %s", err)
-	}
-	Minc, err := strconv.Atoi(os.Getenv("MIN_CONS"))
-	if err != nil {
-		z.Errorf("wrong format of env var: %s", err)
-		return fmt.Errorf("wrong format of env var %s", err)
-	}
-	conf.MaxConns = int32(Maxc) // 10
-	conf.MinConns = int32(Minc) // 5
+	conf.MaxConns = int32(config.GetMaxCons())
+	conf.MinConns = int32(config.GetMinCons())
 
 	conf.HealthCheckPeriod = 1 * time.Minute
 	conf.MaxConnLifetime = 24 * time.Hour
@@ -44,13 +35,14 @@ func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger) (err error) {
 	return nil
 }
 
-func (pg *PG) InitNewStorage(ctx context.Context, connection string, z *zap.SugaredLogger) error {
-	conf, err := pgxpool.ParseConfig(connection)
+func (pg *PG) InitNewStorage(ctx context.Context, z *zap.SugaredLogger, config config.Storage) error {
+
+	conf, err := pgxpool.ParseConfig(config.GetURI())
 	if err != nil {
 		z.Errorf("can't init storage: %s", err)
 		return fmt.Errorf("can't init storage: %s", err)
 	}
-	err = configurePool(conf, z)
+	err = configurePool(conf, z, config)
 	if err != nil {
 		z.Errorf("can't configure pool %s", err)
 		return fmt.Errorf("can't configure pool %s", err)
@@ -63,6 +55,10 @@ func (pg *PG) InitNewStorage(ctx context.Context, connection string, z *zap.Suga
 	}
 	pg.dbPool = dbPool
 	return nil
+}
+
+func (pg *PG) GetDbPool() *pgxpool.Pool {
+	return pg.dbPool
 }
 
 func (pg *PG) AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error {
@@ -95,6 +91,9 @@ func (pg *PG) GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLo
 		err := pg.dbPool.QueryRow(ctx, q, login).Scan(&u.Id, &u.Name, &u.Password, &u.Email)
 		if err != nil {
 			z.Errorf("can't get user by name: %s", err)
+			if errors.Is(err, pgx.ErrNoRows) {
+				return &models.User{}, nil
+			}
 			return nil, fmt.Errorf("can't get user by name: %s", err)
 		}
 		return &u, nil
@@ -119,31 +118,13 @@ func (pg *PG) AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger)
 	}
 }
 
-// TODO: Test it!
-func (pg *PG) GetUrl(ctx context.Context, userId int, z *zap.SugaredLogger) (*models.Url, error) {
-	select {
-	case <-ctx.Done():
-		z.Error("done with context")
-		return nil, fmt.Errorf("done with context")
-	default:
-		q := `SELECT * FROM urls WHERE user_id=$1;`
-		u := models.Url{}
-		err := pg.dbPool.QueryRow(ctx, q, userId).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
-		if err != nil {
-			z.Errorf("can't get url by id: %s", err)
-			return nil, fmt.Errorf("can't get url by id: %s", err)
-		}
-		return &u, nil
-	}
-}
-
 func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error) {
 	select {
 	case <-ctx.Done():
 		z.Error("done with context")
 		return nil, fmt.Errorf("done with context")
 	default:
-		q := `SELECT * FROM urls WHERE user_id = $1`
+		q := `SELECT id, raw, shortened, user_id FROM urls WHERE user_id = $1`
 		rows, err := pg.dbPool.Query(ctx, q, userID)
 		if err != nil {
 			z.Errorf("can't get urls: %s", err)
@@ -153,8 +134,8 @@ func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]
 		urls := make([]models.Url, 0)
 		for rows.Next() {
 			url := models.Url{}
-			err := rows.Scan(&url.Id, &url.Raw, &url.Shortened, &url.UserId,
-				&url.RedirectsNum.Month, &url.RedirectsNum.Week, &url.RedirectsNum.Today)
+			err := rows.Scan(&url.Id, &url.Raw, &url.Shortened, &url.UserId)
+			//	// &url.RedirectsNum.Month, &url.RedirectsNum.Week, &url.RedirectsNum.Today)
 			if err != nil {
 				z.Errorf("can't parse urls: %s", err)
 				return nil, fmt.Errorf("can't parse urls: %s", err)
@@ -171,13 +152,29 @@ func (pg *PG) GetUrlByShortened(ctx context.Context, shortened string, z *zap.Su
 		z.Error("done with context")
 		return nil, fmt.Errorf("done with context")
 	default:
-		q := `SELECT * FROM urls WHERE shortened=$1;`
+		q := `SELECT id, raw, shortened, user_id FROM urls WHERE shortened=$1;`
 		u := models.Url{}
-		err := pg.dbPool.QueryRow(ctx, q, shortened).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
+		err := pg.dbPool.QueryRow(ctx, q, shortened).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId) ////, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
 		if err != nil {
 			z.Errorf("can't get url by shortened: %s", err)
 			return nil, fmt.Errorf("can't get url by shortened: %s", err)
 		}
 		return &u, nil
+	}
+}
+
+func (pg *PG) AddRedirect(ctx context.Context, redirect *models.Redirects, z *zap.SugaredLogger) error {
+	select {
+	case <-ctx.Done():
+		z.Error("done with context")
+		return fmt.Errorf("done with context")
+	default:
+		q := `INSERT INTO redirects (url_id, date_of_usage) VALUES ($1, $2) RETURNING id`
+		err := pg.dbPool.QueryRow(ctx, q, redirect.UrlId, redirect.Date).Scan(&redirect.Id)
+		if err != nil {
+			z.Errorf("can't add to database: %s", err)
+			return fmt.Errorf("can't add to database: %s", err)
+		}
+		return nil
 	}
 }
