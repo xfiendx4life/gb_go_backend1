@@ -2,15 +2,12 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"time"
 
-	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/xfiendx4life/gb_go_backend1/internal/config"
-	"github.com/xfiendx4life/gb_go_backend1/internal/pkg/models"
 	"go.uber.org/zap"
 )
 
@@ -59,122 +56,4 @@ func (pg *PG) InitNewStorage(ctx context.Context, z *zap.SugaredLogger, config c
 
 func (pg *PG) GetDbPool() *pgxpool.Pool {
 	return pg.dbPool
-}
-
-func (pg *PG) AddUser(ctx context.Context, user *models.User, z *zap.SugaredLogger) error {
-	select {
-	case <-ctx.Done():
-		z.Error("done with context")
-		return fmt.Errorf("done with context")
-	default:
-		q := `INSERT INTO users (name, password, email) VALUES ($1, $2, $3) RETURNING id`
-		row := pg.dbPool.QueryRow(ctx, q, user.Name, user.Password, user.Email)
-		err := row.Scan(&user.Id)
-		z.Info(user.Id)
-		if err != nil {
-			z.Errorf("error while inserting to db: %s", err)
-			return fmt.Errorf("error while inserting to db: %s", err)
-		}
-		return nil
-	}
-
-}
-
-func (pg *PG) GetUserByLogin(ctx context.Context, login string, z *zap.SugaredLogger) (*models.User, error) {
-	select {
-	case <-ctx.Done():
-		z.Error("done with context")
-		return nil, fmt.Errorf("done with context")
-	default:
-		q := `SELECT * FROM users WHERE name=$1;`
-		u := models.User{}
-		err := pg.dbPool.QueryRow(ctx, q, login).Scan(&u.Id, &u.Name, &u.Password, &u.Email)
-		if err != nil {
-			z.Errorf("can't get user by name: %s", err)
-			if errors.Is(err, pgx.ErrNoRows) {
-				return &models.User{}, nil
-			}
-			return nil, fmt.Errorf("can't get user by name: %s", err)
-		}
-		return &u, nil
-	}
-}
-
-func (pg *PG) AddUrl(ctx context.Context, url *models.Url, z *zap.SugaredLogger) error {
-	select {
-	case <-ctx.Done():
-		z.Error("done with context")
-		return fmt.Errorf("done with context")
-	default:
-		q := `INSERT INTO urls (raw, shortened, user_id) VALUES ($1, $2, $3) RETURNING id`
-		row := pg.dbPool.QueryRow(ctx, q, url.Raw, url.Shortened, url.UserId)
-		err := row.Scan(&url.Id)
-		z.Infof("Added url with id: %d", url.Id)
-		if err != nil {
-			z.Errorf("error while inserting url to db: %s", err)
-			return fmt.Errorf("error while inserting url to db: %s", err)
-		}
-		return nil
-	}
-}
-
-func (pg *PG) GetUrls(ctx context.Context, userID int, z *zap.SugaredLogger) ([]models.Url, error) {
-	select {
-	case <-ctx.Done():
-		z.Error("done with context")
-		return nil, fmt.Errorf("done with context")
-	default:
-		q := `SELECT id, raw, shortened, user_id FROM urls WHERE user_id = $1`
-		rows, err := pg.dbPool.Query(ctx, q, userID)
-		if err != nil {
-			z.Errorf("can't get urls: %s", err)
-			return nil, fmt.Errorf("can't get urls: %s", err)
-		}
-		defer rows.Close()
-		urls := make([]models.Url, 0)
-		for rows.Next() {
-			url := models.Url{}
-			err := rows.Scan(&url.Id, &url.Raw, &url.Shortened, &url.UserId)
-			//	// &url.RedirectsNum.Month, &url.RedirectsNum.Week, &url.RedirectsNum.Today)
-			if err != nil {
-				z.Errorf("can't parse urls: %s", err)
-				return nil, fmt.Errorf("can't parse urls: %s", err)
-			}
-			urls = append(urls, url)
-		}
-		return urls, nil
-	}
-}
-
-func (pg *PG) GetUrlByShortened(ctx context.Context, shortened string, z *zap.SugaredLogger) (*models.Url, error) {
-	select {
-	case <-ctx.Done():
-		z.Error("done with context")
-		return nil, fmt.Errorf("done with context")
-	default:
-		q := `SELECT id, raw, shortened, user_id FROM urls WHERE shortened=$1;`
-		u := models.Url{}
-		err := pg.dbPool.QueryRow(ctx, q, shortened).Scan(&u.Id, &u.Raw, &u.Shortened, &u.UserId) ////, &u.RedirectsNum.Month, &u.RedirectsNum.Week, &u.RedirectsNum.Today)
-		if err != nil {
-			z.Errorf("can't get url by shortened: %s", err)
-			return nil, fmt.Errorf("can't get url by shortened: %s", err)
-		}
-		return &u, nil
-	}
-}
-
-func (pg *PG) AddRedirect(ctx context.Context, redirect *models.Redirects, z *zap.SugaredLogger) error {
-	select {
-	case <-ctx.Done():
-		z.Error("done with context")
-		return fmt.Errorf("done with context")
-	default:
-		q := `INSERT INTO redirects (url_id, date_of_usage) VALUES ($1, $2) RETURNING id`
-		err := pg.dbPool.QueryRow(ctx, q, redirect.UrlId, redirect.Date).Scan(&redirect.Id)
-		if err != nil {
-			z.Errorf("can't add to database: %s", err)
-			return fmt.Errorf("can't add to database: %s", err)
-		}
-		return nil
-	}
 }

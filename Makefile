@@ -1,4 +1,5 @@
-docker_dir := ./storage/docker_runner
+docker_dir := ./build/docker_runner
+compose_dir := ./build
 init_db: $(docker_dir)
 	sudo bash $(docker_dir)/restart.sh 
 	sleep 3s 
@@ -14,3 +15,9 @@ test-integration: $(docker_dir)
 run:
 	make init_db
 	go run cmd/shrtener/main.go
+run-docker-full:
+	sudo rm -rf ./build/data
+	sudo docker-compose build --no-cache
+	sudo docker-compose up
+run-docker:
+	sudo docker-compose up
