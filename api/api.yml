@@ -119,7 +119,7 @@ paths:
                 userid:
                   type: integer
       responses:
-        '200':
+        '201':
           description: successful creation of url object
           content:
             application/json:

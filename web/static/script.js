@@ -14,9 +14,17 @@ const user = {
 
 }
 
+const url = {
+    id: undefined,
+    rawurl: null,
+    shortened: undefined,
+    userid: null
+}
+
 const page = {
 
     u: user,
+    url: url,
     xhr: new XMLHttpRequest(),
     init() {
         window.addEventListener('click', (event) => this.ClickEvent(event));
@@ -32,8 +40,11 @@ const page = {
         console.log(target);
         this.xhr.open('GET', target, true);
         this.xhr.onload = function () {
-            this.jwt = page.xhr.response;
-            console.log(this.jwt);
+            if (page.jwt === undefined) {
+                page.jwt = page.xhr.response.slice(1, -2);
+                console.log(this.jwt);
+            }
+
         }
         this.xhr.send(null);
     },
@@ -52,12 +63,34 @@ const page = {
                         let f = document.getElementById('reg-form')
                         f.remove()
                         page.login()
-                        document.getElementById('reg-form').style.display = '';
-                        
+                        document.getElementById('shrtn-form').style.display = '';
+
                     }
                 }
                 this.xhr.send(JSON.stringify(this.u));
 
+            } else if (target === 'btn btn-primary shorten') {
+                this.url.rawurl = this.getUrlData();
+                this.url.userid = this.u.id;
+                this.xhr.open("POST", "http://localhost:8080/url", true);
+                this.xhr.setRequestHeader("Content-Type", "application/json");
+                this.xhr.setRequestHeader("Authorization", "Bearer " + this.jwt);
+                this.xhr.onreadystatechange = function () { // Call a function when the state changes.
+                    if (this.readyState === XMLHttpRequest.DONE && this.status === 201) {
+                        console.log(page.xhr.response);
+                        page.url.shortened = JSON.parse(page.xhr.response).shortened;
+                        document.getElementById('links-div').style.display = '';
+                        let shrtLink = document.getElementById('shrtn-link');
+                        shrtLink.setAttribute('href', '/' + page.url.shortened);
+                        shrtLink.innerText = '/' + page.url.shortened;
+
+                        let stats = document.getElementById('stats');
+                        stats.setAttribute('href', '/redirects/' + page.url.shortened);
+                        stats.innerText = '/redirects/' + page.url.shortened;
+
+                    }
+                }
+                this.xhr.send(JSON.stringify(this.url));
             }
         }
     },
@@ -67,6 +100,11 @@ const page = {
         let password = document.getElementById('password').value;
         let email = document.getElementById('email').value;
         this.u.init(login, password, email);
+    },
+
+    getUrlData() {
+        return document.getElementById('raw').value;
+
     }
 }
 page.init()
