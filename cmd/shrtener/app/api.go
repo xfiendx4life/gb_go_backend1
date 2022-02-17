@@ -72,8 +72,8 @@ func readConfig(confSource string, z *zap.SugaredLogger) config.Config {
 }
 
 func App(z *zap.SugaredLogger) {
-	flag.Parse()
 	confSource := flag.String("config", "", "Use flag to choose config source, env if empty")
+	flag.Parse()
 	conf := readConfig(*confSource, z)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.GetTimeOut())*time.Second) // TODO hange for context with Timeout
 	defer cancel()

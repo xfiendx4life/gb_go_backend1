@@ -12,5 +12,6 @@ WORKDIR /
 COPY --from=build /app/out /app
 COPY --from=build /app/configs/ /configs
 COPY --from=build /app/web/templates /web/templates
+COPY --from=build /app/web/static  /web/static
 
 ENTRYPOINT [ "/app", "-config", "/configs/config.yml"]

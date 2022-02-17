@@ -9,7 +9,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./storage/docker_runner/init-db:/docker-entrypoint-initdb.d
+      - ./storage/docker_runner/docker_init-db:/docker-entrypoint-initdb.d
       - ./storage/docker_runner/_data:/var/lib/postgresql/data
     healthcheck:
       test: psql -U xfiendx4life -d shortener --command='SELECT * from users'
