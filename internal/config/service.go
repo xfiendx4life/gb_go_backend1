@@ -72,8 +72,28 @@ func (c *ConfYML) GetConfStorage() Storage {
 	return &c.ConfStorage
 }
 
+func ReadFromEnv() []byte {
+	timeout := os.Getenv("TIMEOUT")
+	loglevel := os.Getenv("LOGLEVEL")
+	logfile := os.Getenv("LOGFILE")
+	uri := os.Getenv("URI")
+	maxcons := os.Getenv("MAXCONS")
+	mincons := os.Getenv("MINCONS")
+	secretkey := os.Getenv("SECRETKEY")
+	ttl := os.Getenv("TTL")
+	return []byte(fmt.Sprintf(`timeout: %s
+loglevel: %s
+logfile: %s
+uri: %s
+maxcons: %s
+mincons: %s
+secretkey: %s
+ttl: %s`, timeout, loglevel, logfile, uri, maxcons, mincons, secretkey, ttl))
+}
+
 func (conf *ConfYML) ReadConfig(data []byte, z *zap.SugaredLogger) (err error) {
 	fake := fakestruct{}
+	z.Infof("Config data: %s", string(data))
 	err = yaml.Unmarshal(data, &fake)
 	if err != nil {
 		z.Errorf("can't unmarshall data: %s", err)

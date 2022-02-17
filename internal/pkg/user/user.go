@@ -11,6 +11,7 @@ import (
 type Deliver interface {
 	Login(ectx echo.Context) error
 	Create(ectx echo.Context) error
+	CreateFromForm(ectx echo.Context) error
 }
 
 type UseCase interface {

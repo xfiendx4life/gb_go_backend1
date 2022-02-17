@@ -1,9 +1,7 @@
-//go:build unit
-// +build unit
-
 package config_test
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -62,4 +60,25 @@ func TestReadConfigError(t *testing.T) {
 	lgr := newLogger()
 	err := c.ReadConfig([]byte(data), lgr)
 	assert.NotNil(t, err)
+}
+
+func TestGetFromEnv(t *testing.T) {
+	os.Setenv("TIMEOUT", "2")
+	os.Setenv("LOGLEVEL", "debug")
+	os.Setenv("LOGFILE", "access.txt")
+	os.Setenv("URI", "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener")
+	os.Setenv("MAXCONS", "10")
+	os.Setenv("MINCONS", "5")
+	os.Setenv("SECRETKEY", "somesecret")
+	os.Setenv("TTL", "60")
+	data := config.ReadFromEnv()
+	testData := `timeout: 2
+loglevel: debug
+logfile: access.txt
+uri: postgres://xfiendx4life:123456@172.17.0.2:5432/shortener
+maxcons: 10
+mincons: 5
+secretkey: somesecret
+ttl: 60`
+	assert.Equal(t, testData, string(data))
 }

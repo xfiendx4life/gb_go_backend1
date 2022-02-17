@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: 123456
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - ./storage/docker_runner/init-db:/docker-entrypoint-initdb.d
       - ./storage/docker_runner/_data:/var/lib/postgresql/data

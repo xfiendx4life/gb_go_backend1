@@ -1,5 +1,5 @@
-docker_dir := ./build/docker_runner
-compose_dir := ./build
+docker_dir := ./storage/docker_runner
+compose_dir := ./
 init_db: $(docker_dir)
 	sudo bash $(docker_dir)/restart.sh 
 	sleep 3s 
@@ -14,7 +14,7 @@ test-integration: $(docker_dir)
 	sudo docker stop postgres_test && sudo docker rm postgres_test
 run:
 	make init_db
-	go run cmd/shrtener/main.go
+	TIMEOUT=2 LOGLEVEL=debug URI=postgres://xfiendx4life:123456@172.17.0.2:5432/shortener MAXCONS=10 MINCONS=5 SECRETKEY="somesecret" TTL=60 go run cmd/shrtener/main.go 
 run-docker-full:
 	sudo rm -rf ./build/data
 	sudo docker-compose build --no-cache

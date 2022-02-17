@@ -2,7 +2,11 @@ package app
 
 import (
 	"context"
+	"flag"
+	"html/template"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,23 +31,50 @@ import (
 
 const port = ":8080"
 
-func App(z *zap.SugaredLogger) {
+type Template struct {
+	templates *template.Template
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func setTemplates(server *echo.Echo) {
+	t := &Template{
+		templates: template.Must(template.ParseGlob("web/templates/*.html")),
+	}
+	server.Renderer = t
+}
+
+func readConfig(confSource string, z *zap.SugaredLogger) config.Config {
 	conf := config.New()
 	path, err := os.Getwd()
 	if err != nil {
 		z.Fatalf("can't find path: %s", err)
-		return
+		return nil
 	}
-	confFile, err := config.ReadFromFile(path+"/configs/config.yml", z)
-	if err != nil {
-		z.Fatalf("can't read config: %s", err)
-		return
+	var confFile []byte
+	if confSource != "" {
+		confFile, err = config.ReadFromFile(path+confSource, z)
+		if err != nil {
+			z.Fatalf("can't read config: %s", err)
+			return nil
+		}
+	} else {
+		confFile = config.ReadFromEnv()
 	}
 	err = conf.ReadConfig(confFile, z)
 	if err != nil {
 		z.Fatalf("can't read config: %s", err)
-		return //
+		return nil
 	}
+	return conf
+}
+
+func App(z *zap.SugaredLogger) {
+	flag.Parse()
+	confSource := flag.String("config", "", "Use flag to choose config source, env if empty")
+	conf := readConfig(*confSource, z)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.GetTimeOut())*time.Second) // TODO hange for context with Timeout
 	defer cancel()
 	// ctx := context.Background()
@@ -51,10 +82,10 @@ func App(z *zap.SugaredLogger) {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	server := echo.New()
 	server.Use(middleware.Recover())
-
+	setTemplates(server)
 	// * Storage init
 	store := storage.New()
-	err = store.InitNewStorage(ctx, z, conf.GetConfStorage())
+	err := store.InitNewStorage(ctx, z, conf.GetConfStorage())
 	if err != nil {
 		log.Fatalf("can't connect to storage")
 	}
@@ -76,20 +107,25 @@ func App(z *zap.SugaredLogger) {
 	url := urlCase.New(urlRepo.New(store, z), rdr, z)
 	urlDeliver := urlDel.New(url, z)
 
+	server.Static("static", "./web/static")
 	// * Handlers
 	server.POST("/user/create", userDeliver.Create)
 	server.GET("/user/login", userDeliver.Login)
 	server.POST("/url", urlDeliver.Save, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
 	server.GET("/:shortened", urlDeliver.Get)
-	server.GET("redirects/:shortened", rDel.GetSummary, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
+	server.GET("/redirects/:shortened", rDel.GetSummary, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
+	server.GET("/web/generate", func(ectx echo.Context) error {
+		data := make(map[string]string)
+		z.Info("In render handler")
+		return ectx.Render(http.StatusOK, "generate", data)
+	})
+
 	go func() {
 		z.Fatal(server.Start(port))
 	}()
 
 	<-sigs
 	z.Errorf(("done with syscall"))
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.GetTimeOut().Seconds())) // TODO hange for context with Timeout
-	// defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
 		z.Fatalf("can't shutdown")
 	}

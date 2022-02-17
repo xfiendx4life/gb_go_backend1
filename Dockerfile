@@ -11,5 +11,6 @@ FROM centos:7
 WORKDIR /
 COPY --from=build /app/out /app
 COPY --from=build /app/configs/ /configs
+COPY --from=build /app/web/templates /web/templates
 
-ENTRYPOINT [ "/app" ]
+ENTRYPOINT [ "/app", "-config", "/configs/config.yml"]

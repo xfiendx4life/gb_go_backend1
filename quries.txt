@@ -8,7 +8,7 @@ curl -X GET "http://localhost:8080/user/login?name=punk&password=123"
 
 
 curl -X POST http://localhost:8080/url -d '{
-                "rawurl": "someVeryLongEtsUrl",    
+                "rawurl": "http://reg.1580.ru",    
                 "userid": 1
           }' -H "Authorization: Bearer <JWT>'
 

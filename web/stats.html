@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -38,30 +38,35 @@
         <header class="header-footer">
             <ul>
                 <li class="menu-item">
-                    <a class="menu-link" href="/">Shorten</a>
+                    <a class="menu-link" href="/web/shorten">Shorten</a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" href="/register">Register</a>
+                    <a class="menu-link" href="/web/register">Register</a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" href="/stats">Stats</a>
+                    <a class="menu-link" href="/web/stats">Stats</a>
                 </li>
             </ul>
         </header>
-        <form method="post">
-            <label for="name" class="form-label">Name</label>
-            <input type="text" name="name" class="form-control" id="name">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password"  class="form-control">
-            <label for="email" class="form-label">Email Address</label>
-            <input type="email" name="email"  class="form-control">
-            <div class="btns" style="margin-top: 10px;">
-                <input type="submit" value="Login" class="btn btn-primary">
-                <input type="submit" value="Register" class="btn btn-secondary">
-            </div>
-            
+        <h1>Number of redirects for url: {{ }}</h1>
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Month</th>
+                <th scope="col">Week</th>
+                <th scope="col">Today</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ .Week}}</td>
+                <td>{{ .Month}}</td>
+                <td>{{ .Today}}</td>
+              </tr>
+            </tbody>
+          </table>
         </form>
     </div>
     
 </body>
-</html>
+</html> -->
