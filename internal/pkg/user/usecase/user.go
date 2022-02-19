@@ -46,6 +46,15 @@ func (g *gres) Add(ctx context.Context, u *models.User) error {
 	return nil
 }
 
+func (g *gres) Get(ctx context.Context, name string) (id int, err error) {
+	u, err := g.repo.GetUserByLogin(ctx, name)
+	if err != nil {
+		g.z.Errorf("can't get user with name %s, err: %s", name, err)
+		return 0, fmt.Errorf("can't get user with name %s, err: %s", name, err)
+	}
+	return u.Id, nil
+}
+
 func New(repo user.Repository, z *zap.SugaredLogger) user.UseCase {
 	return &gres{repo: repo, z: z}
 }

@@ -36,6 +36,10 @@
         .menu-link:hover {
             color: red;
         }
+        h1 > a {
+            text-decoration: none;
+            color:black;
+        }
     </style>
     <script src="/static/script.js"></script>
 </head>
@@ -43,9 +47,10 @@
 <body>
     <div class="container" style="width: 80%; margin: 0 auto;">
         <header class="header-footer">
-            <h1>SSHRTNER</h1>
+            <h1><a href="/web/generate">SSHRTNER</a></h1>
         </header>
-        <form id="reg-form">
+        <!-- TODO ADD message -->
+        <form id="reg-form" style="display: none;">
             <label for="name" class="form-label">Login</label>
             <input type="text" name="name" class="form-control name-input" id="login">
             <label for="name" class="form-label">Password</label>
@@ -53,7 +58,8 @@
             <label for="name" class="form-label">Email</label>
             <input type="email" name="email" class="form-control name-input" id="email">
             <div class="btns " style="margin-top: 10px;">
-                <button type="button" class="btn btn-primary register-btn">Register </button>
+                <button type="button" class="btn btn-primary login-btn">Login </button>
+                <button type="button" class="btn btn-secondary register-btn">Register </button>
             </div>
         </form>
         <form id="shrtn-form" style="display: none;">

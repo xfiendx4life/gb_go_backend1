@@ -76,6 +76,27 @@ paths:
         '400':
           description: wrong format
           content: {}
+  /user:
+    get:
+      operationId: get user by name
+      parameters:
+      - in: query
+        name: name
+        schema:
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                description: user id
+                type: integer
+                format: int64
+        '400':
+          description: wrong format
+          content: {}
+
   /user/login:
     post:
       operationId: create user

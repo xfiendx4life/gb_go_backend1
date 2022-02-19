@@ -90,3 +90,17 @@ func TestLogin(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
+
+func TestGet(t *testing.T) {
+	q := make(url.Values)
+	q.Set("name", "testname")
+	req := httptest.NewRequest("GET", "/user?"+q.Encode(), nil)
+	resp := httptest.NewRecorder()
+	mc := mockStorage{}
+	uc := usecase.New(&mc, lgr)
+	del := deliver.New(uc, ttl, "secret", lgr)
+	c := echo.New().NewContext(req, resp)
+	err := del.Get(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.Code)
+}

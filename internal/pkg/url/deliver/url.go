@@ -23,7 +23,6 @@ func New(u url.UseCase, z *zap.SugaredLogger) url.Deliver {
 	}
 }
 
-// TODO: TEST IT!
 func (u *urlDeliver) Save(ectx echo.Context) error {
 	temUrl := struct {
 		Raw    string `json:"rawurl"`

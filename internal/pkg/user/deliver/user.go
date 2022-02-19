@@ -75,15 +75,12 @@ func (e *EchoDeliver) Create(ectx echo.Context) (err error) {
 	return ectx.JSON(http.StatusCreated, u)
 }
 
-func (e *EchoDeliver) CreateFromForm(ectx echo.Context) error {
-	u := &models.User{
-		Name:     ectx.FormValue("name"),
-		Password: ectx.FormValue("password"),
-		Email:    ectx.FormValue("email"),
+func (e *EchoDeliver) Get(ectx echo.Context) error {
+	name := ectx.QueryParam("name")
+	id, err := e.User.Get(ectx.Request().Context(), name)
+	if err != nil {
+		return echo.ErrBadRequest
 	}
-	if err := e.User.Add(ectx.Request().Context(), u); err != nil {
-		e.z.Errorf("Error in createdFromForm: %s", err)
-		return echo.ErrInternalServerError
-	}
-	return ectx.Redirect(http.StatusOK, "/web/user/login")
+	return ectx.JSON(http.StatusOK, id)
+
 }

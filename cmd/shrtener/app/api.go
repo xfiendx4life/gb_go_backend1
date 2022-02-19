@@ -75,7 +75,7 @@ func App(z *zap.SugaredLogger) {
 	confSource := flag.String("config", "", "Use flag to choose config source, env if empty")
 	flag.Parse()
 	conf := readConfig(*confSource, z)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.GetTimeOut())*time.Second) // TODO hange for context with Timeout
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.GetTimeOut())*time.Second) // TODO ? change for context with Timeout
 	defer cancel()
 	// ctx := context.Background()
 	sigs := make(chan os.Signal, 1)
@@ -114,6 +114,7 @@ func App(z *zap.SugaredLogger) {
 	server.POST("/url", urlDeliver.Save, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
 	server.GET("/:shortened", urlDeliver.Get)
 	server.GET("/redirects/:shortened", rDel.GetSummary, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
+	server.GET("/user", userDeliver.Get)
 	server.GET("/web/generate", func(ectx echo.Context) error {
 		data := make(map[string]string)
 		z.Info("In render handler")

@@ -1,6 +1,3 @@
-//go:build unit
-// +build unit
-
 package usecase_test
 
 import (
@@ -34,6 +31,7 @@ func (mc *mockStorage) AddUser(ctx context.Context, user *models.User) error {
 func (mc *mockStorage) GetUserByLogin(ctx context.Context, login string) (*models.User, error) {
 	s := md5.Sum([]byte("correctPassword"))
 	return &models.User{
+		Id:       1,
 		Name:     "testname",
 		Password: hex.EncodeToString(s[:]),
 	}, mc.err
@@ -79,4 +77,20 @@ func TestAddUserError(t *testing.T) {
 	u := &models.User{Name: "testname", Password: "password", Email: "email"}
 	err := uc.Add(ctx, u)
 	assert.Error(t, err)
+}
+
+func TestGetUser(t *testing.T) {
+	st := &mockStorage{}
+	uc := usecase.New(st, lgr)
+	id, err := uc.Get(ctx, "testname")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, id)
+}
+
+func TestGetUserError(t *testing.T) {
+	st := &mockStorage{err: errors.New("some error")}
+	uc := usecase.New(st, lgr)
+	id, err := uc.Get(ctx, "testname")
+	assert.Error(t, err)
+	assert.Equal(t, 0, id)
 }

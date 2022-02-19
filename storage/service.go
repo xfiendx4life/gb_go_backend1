@@ -15,7 +15,6 @@ func New() Storage {
 	return &PG{}
 }
 
-// TODO: change this function go get all configuration from config object
 func configurePool(conf *pgxpool.Config, z *zap.SugaredLogger, config config.Storage) (err error) {
 	// add cofiguration
 	conf.MaxConns = int32(config.GetMaxCons())
