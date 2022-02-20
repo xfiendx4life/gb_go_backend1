@@ -32,20 +32,29 @@ const page = {
     },
     jwt: undefined,
 
+    getCookie(key) {
+        const c = document.cookie
+        let res = 0
+        if (c != '') {
+            res = c.split('; ')
+                .find(row => row.startsWith(`${key}=`))
+                .split('=')[1];
+        }
+
+        return c
+    },
+
     renderPage(_event) {
         if (document.cookie !== "") {
-            const jwt = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('jwt='))
-                .split('=')[1];
-            const id = +document.cookie
-                .split('; ')
-                .find(row => row.startsWith('id='))
-                .split('=')[1];
-            if (jwt !== '' && id != '') {
+            const jwt = this.getCookie('jwt');
+            const id = +this.getCookie('id');
+            if (jwt !== '' && id != '' && id != 0) {
                 this.jwt = jwt;
                 this.u.id = id;
                 this.getToPhase2(false);
+            } else {
+
+                document.getElementById('reg-form').style.display = '';
             }
         } else {
             document.getElementById('reg-form').style.display = '';
@@ -59,8 +68,17 @@ const page = {
         console.log(target);
         this.xhr.open('GET', target, true);
         this.xhr.onload = function () {
-            if (page.jwt === undefined) {
+            if (page.jwt === undefined || page.jwt === '"message":"Unauthorized"') {
                 page.jwt = page.xhr.response.slice(1, -2);
+                if (page.jwt !== '"message":"Unauthorized"') {
+                    let f = document.getElementById('reg-form');
+                    if (f) {
+                        f.remove();
+                    };
+                    document.getElementById('shrtn-form').style.display = '';
+                } else {
+                    page.sendMessage('Login attempt failed, try again or register');
+                }
                 document.cookie = `jwt=${page.jwt}`;
             }
 
@@ -82,22 +100,31 @@ const page = {
         console.log(target);
         this.xhr.open('GET', target, true);
         this.xhr.onload = function () {
-            page.id = page.xhr.response.slice(0,-1);
-            page.u.id = page.id;
-            document.cookie = `id=${page.id}`;
+            if (page.u.id === undefined) {
+                page.id = page.xhr.response.slice(0, -1);
+                page.u.id = page.id;
+                document.cookie = `id=${page.id}`;
+            }
         }
         this.xhr.send(null);
     },
 
     getToPhase2(shallLogin) {
-        let f = document.getElementById('reg-form')
-        // TODO check if login before removing
-        f.remove()
+        let f = document.getElementById('reg-form');
         if (shallLogin) {
-            this.login()
+            this.login();
+        }
+        if (+this.getCookie('id') !== 0 && this.getCookie('jwt') !== '"message":"Unauthorized"') {
+            f.remove();
+            document.getElementById('shrtn-form').style.display = '';
         }
 
-        document.getElementById('shrtn-form').style.display = '';
+    },
+
+    sendMessage(text) {
+        const alert = document.getElementById('alert');
+        document.getElementById('alert-text').innerHTML = text;
+        alert.style.display = '';
     },
 
     ClickEvent(event) {
@@ -143,8 +170,9 @@ const page = {
             } else if (target === 'btn btn-primary login-btn') {
                 this.getDataFromForm();
                 this.getToPhase2(true);
-                // this.login(`/user`)
-                document.getElementById('shrtn-form').style.display = '';
+                // if (document.cookie != '' && +this.getCookie('id') !== 0 && this.getCookie('jwt') !== '"message":"Unauthorized"') {
+                //     document.getElementById('shrtn-form').style.display = '';
+                // }
             }
 
         }
@@ -155,6 +183,7 @@ const page = {
         let password = document.getElementById('password').value;
         let email = document.getElementById('email').value;
         this.u.init(login, password, email);
+        this.u.id = undefined;
     },
 
     getUrlData() {
