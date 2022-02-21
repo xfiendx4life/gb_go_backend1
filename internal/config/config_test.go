@@ -75,7 +75,7 @@ func TestGetFromEnv(t *testing.T) {
 	os.Setenv("MINCONS", "5")
 	os.Setenv("SECRETKEY", "somesecret")
 	os.Setenv("TTL", "60")
-	os.Setenv("PORT", ":8080")
+	os.Setenv("PORT", "8080")
 	data := config.ReadFromEnv()
 	testData := `timeout: 2
 loglevel: debug
@@ -84,7 +84,7 @@ uri: postgres://xfiendx4life:123456@172.17.0.2:5432/shortener
 maxcons: 10
 mincons: 5
 secretkey: somesecret
-port: :8080
+port: 8080
 ttl: 60`
 	assert.Equal(t, testData, string(data))
 }

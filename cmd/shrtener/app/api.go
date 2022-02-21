@@ -127,7 +127,8 @@ func App(z *zap.SugaredLogger) {
 	})
 
 	go func() {
-		z.Fatal(server.Start(conf.GetPort()))
+		port := ":" + conf.GetPort()
+		z.Fatal(server.Start(port))
 	}()
 
 	<-sigs
