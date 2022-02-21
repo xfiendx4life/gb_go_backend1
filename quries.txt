@@ -13,3 +13,5 @@ curl -X POST http://localhost:8080/url -d '{
           }' -H "Authorization: Bearer <JWT>'
 
 curl -X GET http://localhost:8080/<shortened>
+
+curl -X GET http://localhost:8080/redirects/<shortened> -H "Authorization: Bearer <JWT>'

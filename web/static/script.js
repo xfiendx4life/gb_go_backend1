@@ -21,10 +21,17 @@ const url = {
     userid: null
 }
 
+let stats = {
+    day: undefined,
+    week: undefined,
+    month: undefined
+}
+
 const page = {
 
     u: user,
     url: url,
+    stats: stats,
     xhr: new XMLHttpRequest(),
     init() {
         window.addEventListener('load', (event) => this.renderPage(event))
@@ -99,6 +106,7 @@ const page = {
         let target = `/user?name=${this.u.name}`
         console.log(target);
         this.xhr.open('GET', target, true);
+        this.xhr.setRequestHeader("Authorization", "Bearer " + this.jwt);
         this.xhr.onload = function () {
             if (page.u.id === undefined) {
                 page.id = page.xhr.response.slice(0, -1);
@@ -160,9 +168,9 @@ const page = {
                         shrtLink.setAttribute('href', '/' + page.url.shortened);
                         shrtLink.innerText = '/' + page.url.shortened;
 
-                        let stats = document.getElementById('stats');
-                        stats.setAttribute('href', '/redirects/' + page.url.shortened);
-                        stats.innerText = '/redirects/' + page.url.shortened;
+                        let stats = document.getElementById('stats-link');
+                        stats.setAttribute('href', `${window.location.host}/web/redirects/${page.url.shortened}`);
+                        stats.innerText = `/web/redirects/${page.url.shortened}`;
 
                     }
                 }
@@ -173,6 +181,22 @@ const page = {
                 // if (document.cookie != '' && +this.getCookie('id') !== 0 && this.getCookie('jwt') !== '"message":"Unauthorized"') {
                 //     document.getElementById('shrtn-form').style.display = '';
                 // }
+            } else if (target === 'btn btn-link') {
+                document.getElementById('stats').style.display = '';
+                const url = document.getElementById('stats-link').innerText;
+                this.xhr.open("GET", `/redirects${url}`, true);
+                this.xhr.setRequestHeader("Content-Type", "application/json");
+                this.xhr.setRequestHeader("Authorization", "Bearer " + this.jwt);
+                this.xhr.onreadystatechange = function () { // Call a function when the state changes.
+                    if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+                        console.log(page.xhr.response);
+                        stats = JSON.parse(page.xhr.response);
+                        document.getElementById('today').innerText = stats.day;
+                        document.getElementById('week').innerText = stats.week;
+                        document.getElementById('month').innerText = stats.month;
+                    }
+                }
+                this.xhr.send(null);
             }
 
         }
