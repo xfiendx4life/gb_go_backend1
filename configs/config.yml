@@ -6,3 +6,4 @@ maxcons: 10
 mincons: 5
 secretkey: somesecret
 ttl: 240
+port: :8080

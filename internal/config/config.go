@@ -15,12 +15,14 @@ type Config interface {
 	GetTimeOut() time.Duration
 	GetConfAuth() Auth
 	GetConfStorage() Storage
+	GetPort() string
 }
 
 type ConfYML struct {
 	Timeout  time.Duration `yaml:"timeout"`
 	LogLevel zapcore.Level `yaml:"loglevel"`
 	LogFile  string        `yaml:"logfile"`
+	Port     string        `yaml:"port"`
 	ConfStorage
 	ConfAuth
 }

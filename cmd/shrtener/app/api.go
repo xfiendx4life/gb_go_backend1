@@ -29,7 +29,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const port = ":8080"
+// const port = ":8080"
 
 type Template struct {
 	templates *template.Template
@@ -127,7 +127,7 @@ func App(z *zap.SugaredLogger) {
 	})
 
 	go func() {
-		z.Fatal(server.Start(port))
+		z.Fatal(server.Start(conf.GetPort()))
 	}()
 
 	<-sigs

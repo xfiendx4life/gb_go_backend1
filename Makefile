@@ -14,7 +14,7 @@ test-integration: $(docker_dir)
 	sudo docker stop postgres_test && sudo docker rm postgres_test
 run:
 	make init_db
-	TIMEOUT=2 LOGLEVEL=debug URI=postgres://xfiendx4life:123456@172.17.0.2:5432/shortener MAXCONS=10 MINCONS=5 SECRETKEY="somesecret" TTL=60 go run cmd/shrtener/main.go
+	TIMEOUT=2 PORT=:8080 LOGLEVEL=debug URI=postgres://xfiendx4life:123456@172.17.0.2:5432/shortener MAXCONS=10 MINCONS=5 SECRETKEY="somesecret" TTL=60 go run cmd/shrtener/main.go
 run-docker-full:
 	sudo rm -rf $(docker_dir)/_data
 	sudo docker-compose build --no-cache

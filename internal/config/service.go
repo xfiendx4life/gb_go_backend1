@@ -14,6 +14,7 @@ type fakestruct struct {
 	Timeout     int    `yaml:"timeout"`
 	LogLevel    string `yaml:"loglevel"`
 	LogFile     string `yaml:"logfile"`
+	Port        string `yaml:"port"`
 	ConfStorage `yaml:",inline"`
 	ConfAuth    `yaml:",inline"`
 }
@@ -54,6 +55,10 @@ func (a *ConfAuth) GetTtl() int64 {
 	return a.Ttl
 }
 
+func (c *ConfYML) GetPort() string {
+	return c.Port
+}
+
 func ReadFromFile(path string, z *zap.SugaredLogger) (data []byte, err error) {
 	data, err = os.ReadFile(path)
 	if err != nil {
@@ -81,6 +86,7 @@ func ReadFromEnv() []byte {
 	mincons := os.Getenv("MINCONS")
 	secretkey := os.Getenv("SECRETKEY")
 	ttl := os.Getenv("TTL")
+	port := os.Getenv("PORT")
 	return []byte(fmt.Sprintf(`timeout: %s
 loglevel: %s
 logfile: %s
@@ -88,7 +94,8 @@ uri: %s
 maxcons: %s
 mincons: %s
 secretkey: %s
-ttl: %s`, timeout, loglevel, logfile, uri, maxcons, mincons, secretkey, ttl))
+port: %s
+ttl: %s`, timeout, loglevel, logfile, uri, maxcons, mincons, secretkey, port, ttl))
 }
 
 func (conf *ConfYML) ReadConfig(data []byte, z *zap.SugaredLogger) (err error) {
@@ -112,6 +119,7 @@ func (conf *ConfYML) ReadConfig(data []byte, z *zap.SugaredLogger) (err error) {
 	conf.LogLevel = zapcore.Level(levels[fake.LogLevel])
 	conf.ConfStorage = fake.ConfStorage
 	conf.ConfAuth = fake.ConfAuth
+	conf.Port = fake.Port
 	z.Infof("Config file: %v", fake)
 	return nil
 }
