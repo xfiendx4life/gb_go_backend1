@@ -81,7 +81,7 @@ func ReadFromEnv() []byte {
 	timeout := os.Getenv("TIMEOUT")
 	loglevel := os.Getenv("LOGLEVEL")
 	logfile := os.Getenv("LOGFILE")
-	uri := os.Getenv("URI")
+	uri := os.Getenv("DATABASE_URL")
 	maxcons := os.Getenv("MAXCONS")
 	mincons := os.Getenv("MINCONS")
 	secretkey := os.Getenv("SECRETKEY")

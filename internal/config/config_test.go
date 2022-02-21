@@ -70,7 +70,7 @@ func TestGetFromEnv(t *testing.T) {
 	os.Setenv("TIMEOUT", "2")
 	os.Setenv("LOGLEVEL", "debug")
 	os.Setenv("LOGFILE", "access.txt")
-	os.Setenv("URI", "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener")
+	os.Setenv("DATABASE_URL", "postgres://xfiendx4life:123456@172.17.0.2:5432/shortener")
 	os.Setenv("MAXCONS", "10")
 	os.Setenv("MINCONS", "5")
 	os.Setenv("SECRETKEY", "somesecret")
