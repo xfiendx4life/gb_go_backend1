@@ -43,7 +43,7 @@ const page = {
                 .split('=')[1];
         }
 
-        return c
+        return res
     },
 
     renderPage(_event) {
@@ -150,7 +150,12 @@ const page = {
 
             } else if (target === 'btn btn-primary shorten') {
                 this.url.rawurl = this.getUrlData();
-                this.url.userid = +this.u.id;
+                if (this.u.id) {
+                    this.url.userid = +this.u.id;
+                } else {
+                    this.url.userid = this.getCookie('id');
+                }
+                
                 this.xhr.open("POST", `/url`, true);
                 this.xhr.setRequestHeader("Content-Type", "application/json");
                 this.xhr.setRequestHeader("Authorization", "Bearer " + this.jwt);
@@ -164,8 +169,8 @@ const page = {
                         shrtLink.innerText = '/' + page.url.shortened;
 
                         let stats = document.getElementById('stats-link');
-                        stats.setAttribute('href', `${window.location.host}/web/redirects/${page.url.shortened}`);
-                        stats.innerText = `/web/redirects/${page.url.shortened}`;
+                        stats.setAttribute('href', `/web/redirects/${page.url.shortened}`);
+                        stats.innerText = `http://${window.location.host}/web/redirects/${page.url.shortened}`;
 
                     }
                 }
@@ -173,27 +178,7 @@ const page = {
             } else if (target === 'btn btn-primary login-btn') {
                 this.getDataFromForm();
                 this.getToPhase2(true);
-                // if (document.cookie != '' && +this.getCookie('id') !== 0 && this.getCookie('jwt') !== '"message":"Unauthorized"') {
-                //     document.getElementById('shrtn-form').style.display = '';
             }
-            // } else if (target === 'btn btn-link') {
-            //     document.getElementById('stats').style.display = '';
-            //     const url = document.getElementById('stats-link').innerText;
-            //     this.xhr.open("GET", `/redirects${url}`, true);
-            //     this.xhr.setRequestHeader("Content-Type", "application/json");
-            //     this.xhr.setRequestHeader("Authorization", "Bearer " + this.jwt);
-            //     this.xhr.onreadystatechange = function () { // Call a function when the state changes.
-            //         if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-            //             console.log(page.xhr.response);
-            //             stats = JSON.parse(page.xhr.response);
-            //             document.getElementById('today').innerText = stats.day;
-            //             document.getElementById('week').innerText = stats.week;
-            //             document.getElementById('month').innerText = stats.month;
-            //         }
-            //     }
-            //     this.xhr.send(null);
-            // }
-
         }
     },
 
