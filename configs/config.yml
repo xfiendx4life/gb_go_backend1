@@ -1,0 +1,9 @@
+timeout: 2
+loglevel: debug 
+logfile: access.txt
+uri: postgres://xfiendx4life:123456@postgres:5432/shortener
+maxcons: 10
+mincons: 5
+secretkey: somesecret
+ttl: 240
+port: :8080

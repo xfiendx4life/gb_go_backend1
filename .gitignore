@@ -1,0 +1,5 @@
+_data/
+_data_test/
+data/
+*.out
+.vscode/launch.json
