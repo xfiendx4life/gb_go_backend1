@@ -113,7 +113,7 @@ func App(z *zap.SugaredLogger) {
 	server.GET("/user/login", userDeliver.Login)
 	server.POST("/url", urlDeliver.Save, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
 	server.GET("/:shortened", urlDeliver.Get)
-	server.GET("/redirects/:shortened", rDel.GetSummary)//, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
+	server.GET("/redirects/:shortened", rDel.GetSummary) //, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
 	server.GET("/user", userDeliver.Get, middlewares.JWTAuthMiddleware(conf.GetConfAuth().GetSecretKey()))
 	server.GET("/web/generate", func(ectx echo.Context) error {
 		data := make(map[string]string)

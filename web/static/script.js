@@ -21,17 +21,12 @@ const url = {
     userid: null
 }
 
-let stats = {
-    day: undefined,
-    week: undefined,
-    month: undefined
-}
+
 
 const page = {
 
     u: user,
     url: url,
-    stats: stats,
     xhr: new XMLHttpRequest(),
     init() {
         window.addEventListener('load', (event) => this.renderPage(event))
@@ -180,24 +175,24 @@ const page = {
                 this.getToPhase2(true);
                 // if (document.cookie != '' && +this.getCookie('id') !== 0 && this.getCookie('jwt') !== '"message":"Unauthorized"') {
                 //     document.getElementById('shrtn-form').style.display = '';
-                // }
-            } else if (target === 'btn btn-link') {
-                document.getElementById('stats').style.display = '';
-                const url = document.getElementById('stats-link').innerText;
-                this.xhr.open("GET", `/redirects${url}`, true);
-                this.xhr.setRequestHeader("Content-Type", "application/json");
-                this.xhr.setRequestHeader("Authorization", "Bearer " + this.jwt);
-                this.xhr.onreadystatechange = function () { // Call a function when the state changes.
-                    if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                        console.log(page.xhr.response);
-                        stats = JSON.parse(page.xhr.response);
-                        document.getElementById('today').innerText = stats.day;
-                        document.getElementById('week').innerText = stats.week;
-                        document.getElementById('month').innerText = stats.month;
-                    }
-                }
-                this.xhr.send(null);
             }
+            // } else if (target === 'btn btn-link') {
+            //     document.getElementById('stats').style.display = '';
+            //     const url = document.getElementById('stats-link').innerText;
+            //     this.xhr.open("GET", `/redirects${url}`, true);
+            //     this.xhr.setRequestHeader("Content-Type", "application/json");
+            //     this.xhr.setRequestHeader("Authorization", "Bearer " + this.jwt);
+            //     this.xhr.onreadystatechange = function () { // Call a function when the state changes.
+            //         if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+            //             console.log(page.xhr.response);
+            //             stats = JSON.parse(page.xhr.response);
+            //             document.getElementById('today').innerText = stats.day;
+            //             document.getElementById('week').innerText = stats.week;
+            //             document.getElementById('month').innerText = stats.month;
+            //         }
+            //     }
+            //     this.xhr.send(null);
+            // }
 
         }
     },
